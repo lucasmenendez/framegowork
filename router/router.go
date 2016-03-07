@@ -5,14 +5,13 @@ import (
 	"reflect"
 )
 
-//Basic http function
-type Handle func(http.ResponseWriter, *http.Request)
+type Handler func(http.ResponseWriter, *http.Request)
 
 //Route struct to store path with each methods and functions
 type route struct {
 	path    string
 	methods []string
-	funcs   []Handle
+	funcs   []Handler
 }
 
 //Router struct (class abstraction)
@@ -29,32 +28,31 @@ func New() *Router {
 //Functions to add method and function to a path
 
 //GET
-func (r *Router) GET(path string, handle Handle) {
-	r.addMethod("GET", path, handle)
+func (r *Router) GET(path string, handler Handler) {
+	r.addMethod("GET", path, handler)
 	return
 }
 
 //POST
-func (r *Router) POST(path string, handle Handle) {
-	r.addMethod("POST", path, handle)
+func (r *Router) POST(path string, handler Handler) {
+	r.addMethod("POST", path, handler)
 	return
 }
 
 //PUT
-func (r *Router) PUT(path string, handle Handle) {
-	r.addMethod("PUT", path, handle)
+func (r *Router) PUT(path string, handler Handler) {
+	r.addMethod("PUT", path, handler)
 	return
 }
 
 //DELETE
-func (r *Router) DELETE(path string, handle Handle) {
-	r.addMethod("DELETE", path, handle)
+func (r *Router) DELETE(path string, handler Handler) {
+	r.addMethod("DELETE", path, handler)
 	return
 }
 
-
 //Add Method check if path exists to append new method-function relation or create path with it
-func (r *Router) addMethod(method, path string, handle Handle) {
+func (r *Router) addMethod(method, path string, handler Handler) {
 	position := -1
 
 	for i, route := range r.routes {
@@ -66,10 +64,10 @@ func (r *Router) addMethod(method, path string, handle Handle) {
 
 	if position > -1 {
 		r.routes[position].methods = append(r.routes[position].methods, method)
-		r.routes[position].funcs = append(r.routes[position].funcs, handle)
+		r.routes[position].funcs = append(r.routes[position].funcs, handler)
 	} else {
 		methods := []string{method}
-		funcs := []Handle{handle}
+		funcs := []Handler{handler}
 		r.routes = append(r.routes, route{path, methods, funcs})
 	}
 
@@ -77,7 +75,7 @@ func (r *Router) addMethod(method, path string, handle Handle) {
 }
 
 //Serve routes over all its methods
-func handleRoute(path string, methods []string, funcs []Handle) {
+func handleRoute(path string, methods []string, funcs []Handler) {
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		for position, method := range methods {
 			if method == r.Method {
