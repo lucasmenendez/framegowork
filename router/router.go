@@ -2,7 +2,7 @@ package router
 
 import (
 	"net/http"
-	"reflect"
+	//"reflect"
 )
 
 type Handler func(http.ResponseWriter, *http.Request)
@@ -79,15 +79,16 @@ func handleRoute(path string, methods []string, funcs []Handler) {
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		for position, method := range methods {
 			if method == r.Method {
-				params := make([]reflect.Value, 2)
-				params[0] = reflect.ValueOf(w)
-				params[1] = reflect.ValueOf(r)
-
-				f := reflect.ValueOf(funcs[position])
-				f.Call(params)
+				handleFunc(w, r, &funcs[position])
 			}
 		}
 	})
+}
+
+func handleFunc(w http.ResponseWriter, r *http.Request, handler *Handler) {
+	f := *handler
+	f(w, r)
+	return
 }
 
 //Iterate over routes and launch goroutine

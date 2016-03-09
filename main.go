@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"framegowork/router"
+	"net/http"
 )
 
 func get(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +22,7 @@ func del(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "DELETE METHOD")
 }
 
-func main () {
+func main() {
 	router := router.New()
 	router.GET("/method", get)
 	router.POST("/method", post)
