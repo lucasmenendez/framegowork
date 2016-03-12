@@ -2,9 +2,11 @@ package router
 
 import (
 	"net/http"
+	"regexp"
+	"strings"
 )
 
-type Handler func(http.ResponseWriter, *http.Request)
+type Handler func(http.ResponseWriter, *http.Request, map[string]string)
 
 //Route struct to store path with each methods and functions
 type route struct {
@@ -73,24 +75,61 @@ func (r *Router) addMethod(method, path string, handler *Handler) {
 	return
 }
 
-//Serve routes over all its methods
-func handleRoute(path string, methods []string, funcs []*Handler) {
-	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		for position, method := range methods {
-			if method == r.Method {
-				f := *funcs[position]
-				f(w, r)
+//Extract url params and check if route match with path
+func (route route) parsePath(path string) (bool, map[string]string) {
+	var params, res []string
+
+	attrs := make(map[string]string)
+
+	route_strs := strings.Split(route.path, "/")
+	path_strs := strings.Split(path, "/")
+
+	if len(route_strs) == len(path_strs) {
+		for _, str := range route_strs {
+			if len(str) > 0 && string(str[0]) == string(":") {
+				params = append(params, str[1:])
+				str = "([A-Za-z0-9-_]+)"
 			}
+			res = append(res, str)
 		}
-	})
+
+		rgx, _ := regexp.Compile(strings.Join(res, "/"))
+		if rgx.MatchString(path) {
+			values := rgx.FindStringSubmatch(path)
+			values = values[1:]
+			for i, value := range values {
+				attrs[params[i]] = value
+			}
+
+			return true, attrs
+		} else {
+			return false, attrs
+		}
+	} else {
+		return false, attrs
+	}
+}
+
+//Serve routes over all its methods
+func (route route) handleRoute(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	for position, method := range route.methods {
+		if method == r.Method {
+			f := *route.funcs[position]
+			f(w, r, params)
+		}
+	}
 	return
 }
 
-//Iterate over routes and launch goroutine
-func (r *Router) RunServer(port string) {
-	for _, route := range r.routes {
-		go handleRoute(route.path, route.methods, route.funcs)
+func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	for _, route := range router.routes {
+		match, params := route.parsePath(r.URL.Path)
+		if match {
+			route.handleRoute(w, r, params)
+		}
 	}
+}
 
-	http.ListenAndServe(":"+port, nil)
+func (r *Router) Run(port string) {
+	http.ListenAndServe(":"+port, r)
 }

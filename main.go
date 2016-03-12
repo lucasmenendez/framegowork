@@ -6,27 +6,12 @@ import (
 	"net/http"
 )
 
-func get(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "GET METHOD")
-}
-
-func post(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "POST METHOD")
-}
-
-func put(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "PUT METHOD")
-}
-
-func del(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "DELETE METHOD")
+func echo(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	fmt.Fprintf(w, "Hello, "+params["msg"])
 }
 
 func main() {
 	router := router.New()
-	router.GET("/method", get)
-	router.POST("/method", post)
-	router.PUT("/method", put)
-	router.DELETE("/method", del)
-	router.RunServer("9999")
+	router.GET("/echo/:msg", echo)
+	router.Run("9999")
 }

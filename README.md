@@ -4,10 +4,10 @@ Golang micro web framework.
 
 ## Use
 - Import ```"router"``` library.
-- Write a function with params: ```http.ResponseWriter``` & ```*http.Request```:
+- Write a function with params: ```http.ResponseWriter, *http.Request & map[string]string```:
 ``` 
-  func helloWorld(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hello World")
+  func helloWorld(w http.ResponseWriter, r *http.Request, params map[string]string) {
+    fmt.Fprintf(w, "Hello, " + params["msg"])
   } 
 ```
 - Instance ```router``` struct:
@@ -16,10 +16,10 @@ Golang micro web framework.
 ```
 - Set path, method and callback:
 ```
-  router.GET("/hellow-world", helloWorld)
+  router.GET("/echo/:msg", helloWorld)
 ```
 - Set port number and start server:
 ```
-  router.RunServer("9999")
+  router.Run("9999")
 ```
-- Open ```localhost:9999/hello-world```on your browser.
+- Open ```localhost:9999/echo/world```on your browser.
