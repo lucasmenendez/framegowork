@@ -6,9 +6,16 @@ Golang micro web framework.
 - Import ```"router"``` library.
 - Write a function with params: ```http.ResponseWriter, *http.Request & map[string]string```:
 ``` 
-  func helloWorld(w http.ResponseWriter, r *http.Request, params map[string]string) {
-    fmt.Fprintf(w, "Hello, " + params["msg"])
+  func echo(w http.ResponseWriter, r *http.Request, params map[string]string) {
+    fmt.Fprintf(w, "Hello, "+params["msg"])
   } 
+```
+- Write, if you want, a middleware function with params: ```http.ResponseWriter, *http.Request, map[string]string & router.NextHandler```
+```
+  func middleware(w http.ResponseWriter, r *http.Request, params map[string]string, next router.NextHandler) {
+    fmt.Fprintf(w, "Hey!\n")
+    next.Exec(w, r, params)
+  }
 ```
 - Instance ```router``` struct:
 ```
@@ -16,7 +23,11 @@ Golang micro web framework.
 ```
 - Set path, method and callback:
 ```
-  router.GET("/echo/:msg", helloWorld)
+  router.GET("/echo/:msg", echo)
+```
+or
+```
+  router.GET("/echo/:msg", echo, middleware)
 ```
 - Set port number and start server:
 ```

@@ -7,12 +7,14 @@ import (
 )
 
 type Handler func(http.ResponseWriter, *http.Request, map[string]string)
+type Middleware func(http.ResponseWriter, *http.Request, map[string]string, NextHandler)
 
-//Route struct to store path with each methods and functions
+//Route struct to store path with its methods and functions
 type route struct {
-	path    string
-	methods []string
-	funcs   []*Handler
+	path       string
+	methods    []string
+	funcs      []*Handler
+	middleware *Middleware
 }
 
 //Router struct (class abstraction)
@@ -26,34 +28,67 @@ func New() *Router {
 	return &Router{routes}
 }
 
+//Abstraction to exec next function
+type NextHandler struct {
+	handler *Handler
+}
+
+//Exec next function when route has a middleware
+func (n NextHandler) Exec(w http.ResponseWriter, r *http.Request, p map[string]string) {
+	next := *n.handler
+	next(w, r, p)
+	return
+}
+
 //Functions to add method and function to a path
 
 //GET
-func (r *Router) GET(path string, handler Handler) {
-	r.addMethod("GET", path, &handler)
+func (r *Router) GET(path string, handler Handler, middlewares ...Middleware) {
+	var m []*Middleware
+	for _, middleware := range middlewares {
+		m = append(m, &middleware)
+	}
+	r.addMethod("GET", path, &handler, m)
 	return
 }
 
 //POST
-func (r *Router) POST(path string, handler Handler) {
-	r.addMethod("POST", path, &handler)
+func (r *Router) POST(path string, handler Handler, middlewares ...Middleware) {
+	var m []*Middleware
+	for _, middleware := range middlewares {
+		m = append(m, &middleware)
+	}
+	r.addMethod("POST", path, &handler, m)
 	return
 }
 
 //PUT
-func (r *Router) PUT(path string, handler Handler) {
-	r.addMethod("PUT", path, &handler)
+func (r *Router) PUT(path string, handler Handler, middlewares ...Middleware) {
+	var m []*Middleware
+	for _, middleware := range middlewares {
+		m = append(m, &middleware)
+	}
+	r.addMethod("PUT", path, &handler, m)
 	return
 }
 
 //DELETE
-func (r *Router) DELETE(path string, handler Handler) {
-	r.addMethod("DELETE", path, &handler)
+func (r *Router) DELETE(path string, handler Handler, middlewares ...Middleware) {
+	var m []*Middleware
+	for _, middleware := range middlewares {
+		m = append(m, &middleware)
+	}
+	r.addMethod("DELETE", path, &handler, m)
 	return
 }
 
 //Add Method check if path exists to append new method-function relation or create path with it
-func (r *Router) addMethod(method, path string, handler *Handler) {
+func (r *Router) addMethod(method, path string, handler *Handler, middlewares []*Middleware) {
+	var middleware *Middleware
+	if len(middlewares) > 0 {
+		middleware = middlewares[0]
+	}
+
 	position := -1
 
 	for i, route := range r.routes {
@@ -66,10 +101,11 @@ func (r *Router) addMethod(method, path string, handler *Handler) {
 	if position > -1 {
 		r.routes[position].methods = append(r.routes[position].methods, method)
 		r.routes[position].funcs = append(r.routes[position].funcs, handler)
+		r.routes[position].middleware = middleware
 	} else {
 		methods := []string{method}
 		funcs := []*Handler{handler}
-		r.routes = append(r.routes, route{path, methods, funcs})
+		r.routes = append(r.routes, route{path, methods, funcs, middleware})
 	}
 
 	return
@@ -114,8 +150,13 @@ func (route route) parsePath(path string) (bool, map[string]string) {
 func (route route) handleRoute(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	for position, method := range route.methods {
 		if method == r.Method {
-			f := *route.funcs[position]
-			f(w, r, params)
+			if route.middleware == nil {
+				f := *route.funcs[position]
+				f(w, r, params)
+			} else {
+				m := *route.middleware
+				m(w, r, params, NextHandler{route.funcs[position]})
+			}
 		}
 	}
 	return
