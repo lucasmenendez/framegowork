@@ -10,9 +10,9 @@ func echo(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	fmt.Fprintf(w, "Hello, "+params["msg"])
 }
 
-func middleware(w http.ResponseWriter, r *http.Request, params map[string]string, next router.NextHandler) {
+func middleware(w http.ResponseWriter, r *http.Request, next router.NextHandler) {
 	fmt.Fprintf(w, "Hey!\n")
-	next.Exec(w, r, params)
+	next.Exec(w, r)
 }
 
 func main() {

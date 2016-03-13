@@ -7,7 +7,7 @@ import (
 )
 
 type Handler func(http.ResponseWriter, *http.Request, map[string]string)
-type Middleware func(http.ResponseWriter, *http.Request, map[string]string, NextHandler)
+type Middleware func(http.ResponseWriter, *http.Request, NextHandler)
 
 //Route struct to store path with its methods and functions
 type route struct {
@@ -31,12 +31,13 @@ func New() *Router {
 //Abstraction to exec next function
 type NextHandler struct {
 	handler *Handler
+	params  map[string]string
 }
 
 //Exec next function when route has a middleware
-func (n NextHandler) Exec(w http.ResponseWriter, r *http.Request, p map[string]string) {
+func (n NextHandler) Exec(w http.ResponseWriter, r *http.Request) {
 	next := *n.handler
-	next(w, r, p)
+	next(w, r, n.params)
 	return
 }
 
@@ -155,7 +156,7 @@ func (route route) handleRoute(w http.ResponseWriter, r *http.Request, params ma
 				f(w, r, params)
 			} else {
 				m := *route.middleware
-				m(w, r, params, NextHandler{route.funcs[position]})
+				m(w, r, NextHandler{route.funcs[position], params})
 			}
 		}
 	}

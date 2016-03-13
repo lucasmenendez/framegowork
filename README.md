@@ -10,11 +10,11 @@ Golang micro web framework.
     fmt.Fprintf(w, "Hello, "+params["msg"])
   } 
 ```
-- Write, if you want, a middleware function with params: ```http.ResponseWriter, *http.Request, map[string]string & router.NextHandler```
+- Write, if you want, a middleware function with params: ```http.ResponseWriter, *http.Request & router.NextHandler```
 ```
-  func middleware(w http.ResponseWriter, r *http.Request, params map[string]string, next router.NextHandler) {
+  func middleware(w http.ResponseWriter, r *http.Request,  next router.NextHandler) {
     fmt.Fprintf(w, "Hey!\n")
-    next.Exec(w, r, params)
+    next.Exec(w, r)
   }
 ```
 - Instance ```router``` struct:
