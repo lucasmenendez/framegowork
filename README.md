@@ -2,6 +2,12 @@
 Golang micro web framework.
 
 
+## Demo
+- Import all repository
+- Exec ```go run main.go```
+- Open ```localhost:9999/echo/world```
+
+
 ## Use
 - Import ```"router"``` library.
 - Write a function with params: ```http.ResponseWriter, *http.Request & map[string]string```:
