@@ -14,6 +14,7 @@ type route struct {
 	path       string
 	methods    []string
 	funcs      []*Handler
+	rgx        *regexp.Regexp
 	middleware *Middleware
 }
 
@@ -99,14 +100,27 @@ func (r *Router) addMethod(method, path string, handler *Handler, middlewares []
 		}
 	}
 
+	var res []string
+
+	path_strs := strings.Split(path, "/")
+	for _, str := range path_strs {
+		if len(str) > 0 && string(str[0]) == string(":") {
+			str = "([A-Za-z0-9-_]+)"
+		}
+		res = append(res, str)
+	}
+
+	rgx, _ := regexp.Compile(strings.Join(res, "/"))
+
 	if position > -1 {
 		r.routes[position].methods = append(r.routes[position].methods, method)
 		r.routes[position].funcs = append(r.routes[position].funcs, handler)
+		r.routes[position].rgx = rgx
 		r.routes[position].middleware = middleware
 	} else {
 		methods := []string{method}
 		funcs := []*Handler{handler}
-		r.routes = append(r.routes, route{path, methods, funcs, middleware})
+		r.routes = append(r.routes, route{path, methods, funcs, rgx, middleware})
 	}
 
 	return
@@ -114,7 +128,7 @@ func (r *Router) addMethod(method, path string, handler *Handler, middlewares []
 
 //Extract url params and check if route match with path
 func (route route) parsePath(path string) (bool, map[string]string) {
-	var params, res []string
+	var params []string
 
 	attrs := make(map[string]string)
 
@@ -122,17 +136,15 @@ func (route route) parsePath(path string) (bool, map[string]string) {
 	path_strs := strings.Split(path, "/")
 
 	if len(route_strs) == len(path_strs) {
+
 		for _, str := range route_strs {
 			if len(str) > 0 && string(str[0]) == string(":") {
 				params = append(params, str[1:])
-				str = "([A-Za-z0-9-_]+)"
 			}
-			res = append(res, str)
 		}
 
-		rgx, _ := regexp.Compile(strings.Join(res, "/"))
-		if rgx.MatchString(path) {
-			values := rgx.FindStringSubmatch(path)
+		if route.rgx.MatchString(path) {
+			values := route.rgx.FindStringSubmatch(path)
 			values = values[1:]
 			for i, value := range values {
 				attrs[params[i]] = value
@@ -142,6 +154,7 @@ func (route route) parsePath(path string) (bool, map[string]string) {
 		} else {
 			return false, attrs
 		}
+
 	} else {
 		return false, attrs
 	}
