@@ -46,9 +46,9 @@ func (n NextHandler) Exec(w http.ResponseWriter, r *http.Request) {
 
 //GET
 func (r *Router) GET(path string, handler Handler, middlewares ...Middleware) {
-	var m []*Middleware
-	for _, middleware := range middlewares {
-		m = append(m, &middleware)
+	var m *Middleware
+	if len(middlewares) > 0 {
+		m = &middlewares[0]
 	}
 	r.addMethod("GET", path, &handler, m)
 	return
@@ -56,9 +56,9 @@ func (r *Router) GET(path string, handler Handler, middlewares ...Middleware) {
 
 //POST
 func (r *Router) POST(path string, handler Handler, middlewares ...Middleware) {
-	var m []*Middleware
-	for _, middleware := range middlewares {
-		m = append(m, &middleware)
+	var m *Middleware
+	if len(middlewares) > 0 {
+		m = &middlewares[0]
 	}
 	r.addMethod("POST", path, &handler, m)
 	return
@@ -66,9 +66,9 @@ func (r *Router) POST(path string, handler Handler, middlewares ...Middleware) {
 
 //PUT
 func (r *Router) PUT(path string, handler Handler, middlewares ...Middleware) {
-	var m []*Middleware
-	for _, middleware := range middlewares {
-		m = append(m, &middleware)
+	var m *Middleware
+	if len(middlewares) > 0 {
+		m = &middlewares[0]
 	}
 	r.addMethod("PUT", path, &handler, m)
 	return
@@ -76,21 +76,16 @@ func (r *Router) PUT(path string, handler Handler, middlewares ...Middleware) {
 
 //DELETE
 func (r *Router) DELETE(path string, handler Handler, middlewares ...Middleware) {
-	var m []*Middleware
-	for _, middleware := range middlewares {
-		m = append(m, &middleware)
+	var m *Middleware
+	if len(middlewares) > 0 {
+		m = &middlewares[0]
 	}
 	r.addMethod("DELETE", path, &handler, m)
 	return
 }
 
 //Create route with path, functions, methods, regexp to compare and middleware if exists
-func (r *Router) addMethod(method, path string, handler *Handler, middlewares []*Middleware) {
-	var middleware *Middleware
-	if len(middlewares) > 0 {
-		middleware = middlewares[0]
-	}
-
+func (r *Router) addMethod(method, path string, handler *Handler, middleware *Middleware) {
 	position := -1
 
 	for i, route := range r.routes {
