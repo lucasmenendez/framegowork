@@ -84,7 +84,7 @@ func (r *Router) DELETE(path string, handler Handler, middlewares ...Middleware)
 	return
 }
 
-//Add Method check if path exists to append new method-function relation or create path with it
+//Create route with path, functions, methods, regexp to compare and middleware if exists
 func (r *Router) addMethod(method, path string, handler *Handler, middlewares []*Middleware) {
 	var middleware *Middleware
 	if len(middlewares) > 0 {
@@ -167,24 +167,32 @@ func (route route) handleRoute(w http.ResponseWriter, r *http.Request, params ma
 			if route.middleware == nil {
 				f := *route.funcs[position]
 				f(w, r, params)
+				return
 			} else {
 				m := *route.middleware
 				m(w, r, NextHandler{route.funcs[position], params})
+				return
 			}
 		}
 	}
+	http.Error(w, "Not found.", 404)
 	return
 }
 
+//Listen calls and call, if exists, its function
 func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, route := range router.routes {
 		match, params := route.parsePath(r.URL.Path)
 		if match {
 			route.handleRoute(w, r, params)
+			return
 		}
 	}
+	http.Error(w, "Not found.", 404)
+	return
 }
 
+//Run on given port
 func (r *Router) Run(port string) {
 	http.ListenAndServe(":"+port, r)
 }
