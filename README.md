@@ -8,11 +8,15 @@ Golang micro web framework.
 - Open ```localhost:9999/echo/world```
 
 
+## Tools
+- ```username, password, ok := tools.BasicAuth(authHeader string) (string, string, bool)
+- ```json, err := tools.ToJSON(data interface{}) ([]byte, error)
+
+
 ## Use
 
 #### Import
 Import ```"server"``` library.
-
 
 #### Custom route type
 Write a function with params: ```http.ResponseWriter, *http.Request & map[string]string```:
@@ -51,7 +55,6 @@ Set port server. Default ```9999```
 ```
   server.SetPort("9999")
 ```
-
 
 #### Instance routes
 Set path, method and callback:
