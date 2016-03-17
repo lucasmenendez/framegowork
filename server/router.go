@@ -1,4 +1,4 @@
-package router
+package server
 
 import (
 	"net/http"
@@ -9,8 +9,14 @@ import (
 type Handler func(http.ResponseWriter, *http.Request, map[string]string)
 type Middleware func(http.ResponseWriter, *http.Request, NextHandler)
 
+//Server config
+type Config struct {
+	port    string
+	headers map[string]string
+}
+
 //Route struct to store path with its methods and functions
-type route struct {
+type Route struct {
 	path       string
 	methods    []string
 	funcs      []*Handler
@@ -19,14 +25,9 @@ type route struct {
 }
 
 //Router struct (class abstraction)
-type Router struct {
-	routes []route
-}
-
-//Contructor
-func New() *Router {
-	var routes []route
-	return &Router{routes}
+type Server struct {
+	routes []Route
+	config Config
 }
 
 //Abstraction to exec next function
@@ -42,10 +43,25 @@ func (n NextHandler) Exec(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+//Contructor
+func New() *Server {
+	return &Server{[]Route{}, Config{"9999", map[string]string{}}}
+}
+
+//Set port server
+func (server *Server) SetPort(port string) {
+	server.config.port = port
+}
+
+//Set server headers
+func (server *Server) SetHeader(attr, value string) {
+	server.config.headers[attr] = value
+}
+
 //Functions to add method and function to a path
 
 //GET
-func (r *Router) GET(path string, handler Handler, middlewares ...Middleware) {
+func (r *Server) GET(path string, handler Handler, middlewares ...Middleware) {
 	var m *Middleware
 	if len(middlewares) > 0 {
 		m = &middlewares[0]
@@ -55,7 +71,7 @@ func (r *Router) GET(path string, handler Handler, middlewares ...Middleware) {
 }
 
 //POST
-func (r *Router) POST(path string, handler Handler, middlewares ...Middleware) {
+func (r *Server) POST(path string, handler Handler, middlewares ...Middleware) {
 	var m *Middleware
 	if len(middlewares) > 0 {
 		m = &middlewares[0]
@@ -65,7 +81,7 @@ func (r *Router) POST(path string, handler Handler, middlewares ...Middleware) {
 }
 
 //PUT
-func (r *Router) PUT(path string, handler Handler, middlewares ...Middleware) {
+func (r *Server) PUT(path string, handler Handler, middlewares ...Middleware) {
 	var m *Middleware
 	if len(middlewares) > 0 {
 		m = &middlewares[0]
@@ -75,7 +91,7 @@ func (r *Router) PUT(path string, handler Handler, middlewares ...Middleware) {
 }
 
 //DELETE
-func (r *Router) DELETE(path string, handler Handler, middlewares ...Middleware) {
+func (r *Server) DELETE(path string, handler Handler, middlewares ...Middleware) {
 	var m *Middleware
 	if len(middlewares) > 0 {
 		m = &middlewares[0]
@@ -85,10 +101,10 @@ func (r *Router) DELETE(path string, handler Handler, middlewares ...Middleware)
 }
 
 //Create route with path, functions, methods, regexp to compare and middleware if exists
-func (r *Router) addMethod(method, path string, handler *Handler, middleware *Middleware) {
+func (server *Server) addMethod(method, path string, handler *Handler, middleware *Middleware) {
 	position := -1
 
-	for i, route := range r.routes {
+	for i, route := range server.routes {
 		if route.path == path {
 			position = i
 			break
@@ -108,21 +124,21 @@ func (r *Router) addMethod(method, path string, handler *Handler, middleware *Mi
 	rgx, _ := regexp.Compile(strings.Join(res, "/"))
 
 	if position > -1 {
-		r.routes[position].methods = append(r.routes[position].methods, method)
-		r.routes[position].funcs = append(r.routes[position].funcs, handler)
-		r.routes[position].rgx = rgx
-		r.routes[position].middleware = middleware
+		server.routes[position].methods = append(server.routes[position].methods, method)
+		server.routes[position].funcs = append(server.routes[position].funcs, handler)
+		server.routes[position].rgx = rgx
+		server.routes[position].middleware = middleware
 	} else {
 		methods := []string{method}
 		funcs := []*Handler{handler}
-		r.routes = append(r.routes, route{path, methods, funcs, rgx, middleware})
+		server.routes = append(server.routes, Route{path, methods, funcs, rgx, middleware})
 	}
 
 	return
 }
 
 //Extract url params and check if route match with path
-func (route route) parsePath(path string) (bool, map[string]string) {
+func (route Route) parsePath(path string) (bool, map[string]string) {
 	var params []string
 
 	attrs := make(map[string]string)
@@ -156,7 +172,7 @@ func (route route) parsePath(path string) (bool, map[string]string) {
 }
 
 //Serve routes over all its methods
-func (route route) handleRoute(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (route Route) handleRoute(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	for position, method := range route.methods {
 		if method == r.Method {
 			if route.middleware == nil {
@@ -174,9 +190,13 @@ func (route route) handleRoute(w http.ResponseWriter, r *http.Request, params ma
 	return
 }
 
-//Listen calls and call, if exists, its function
-func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for _, route := range router.routes {
+//Listen routes and call, if exists, its function. Set router headers
+func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	for attr, value := range server.config.headers {
+		w.Header().Set(attr, value)
+	}
+
+	for _, route := range server.routes {
 		match, params := route.parsePath(r.URL.Path)
 		if match {
 			route.handleRoute(w, r, params)
@@ -188,6 +208,6 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //Run on given port
-func (r *Router) Run(port string) {
-	http.ListenAndServe(":"+port, r)
+func (server *Server) Run() {
+	http.ListenAndServe(":"+server.config.port, server)
 }

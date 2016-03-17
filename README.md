@@ -9,34 +9,64 @@ Golang micro web framework.
 
 
 ## Use
-- Import ```"router"``` library.
-- Write a function with params: ```http.ResponseWriter, *http.Request & map[string]string```:
+
+#### Import
+Import ```"server"``` library.
+
+
+#### Custom route type
+Write a function with params: ```http.ResponseWriter, *http.Request & map[string]string```:
 ``` 
   func echo(w http.ResponseWriter, r *http.Request, params map[string]string) {
     fmt.Fprintf(w, "Hello, "+params["msg"])
   } 
 ```
-- Write, if you want, a middleware function with params: ```http.ResponseWriter, *http.Request & router.NextHandler```
+
+#### Middleware
+Write, if you want, a middleware function with params: ```http.ResponseWriter, *http.Request & server.NextHandler```
 ```
-  func middleware(w http.ResponseWriter, r *http.Request,  next router.NextHandler) {
+  func middleware(w http.ResponseWriter, r *http.Request,  next server.NextHandler) {
     fmt.Fprintf(w, "Hey!\n")
     next.Exec(w, r)
   }
 ```
-- Instance ```router``` struct:
+
+#### Create router
+Instance ```server``` struct with config params:
 ```
-  router := router.New()
+  server := server.New()
 ```
-- Set path, method and callback:
+
+#### Config server
+##### Headers
+Add universal headers to server. Can be overwrited with common method.
 ```
-  router.GET("/echo/:msg", echo)
+  server.SetHeader("Content-Type", "text/plain")
+  server.SetHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+  server.SetHeader("Access-Control-Allow-Origin", "*")
+  server.SetHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+```
+##### Port
+Set port server. Default ```9999```
+```
+  server.SetPort("9999")
+```
+
+
+#### Instance routes
+Set path, method and callback:
+```
+  server.GET("/echo/:msg", echo)
 ```
 or
 ```
-  router.GET("/echo/:msg", echo, middleware)
+  server.POST("/echo/:msg", echo, middleware)
 ```
-- Set port number and start server:
+
+#### Run server
+Set port number and start server:
 ```
-  router.Run("9999")
+  server.Run()
 ```
-- Open ```localhost:9999/echo/world```on your browser.
+
+Open ```localhost:9999/echo/world```on your browser.

@@ -2,7 +2,7 @@ package tools
 
 import (
 	"encoding/base64"
-	//"encoding/json"
+	"encoding/json"
 	"strings"
 )
 
@@ -25,4 +25,9 @@ func BasicAuth(header string) (string, string, bool) {
 	}
 
 	return username, password, ok
+}
+
+func ToJSON(data interface{}) ([]byte, error) {
+	result, err := json.Marshal(data)
+	return result, err
 }
