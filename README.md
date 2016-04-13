@@ -4,22 +4,22 @@ Golang micro web framework.
 
 ## Demo
 - Import all repository
-- Exec ```go run main.go```
-- Open ```localhost:9999/echo/world```
+- Run `go run main.go`
+- Open `localhost:9999/echo/world`
 
 
 ## Tools
-- ```username, password, ok := tools.BasicAuth(authHeader string) (string, string, bool)
-- ```json, err := tools.ToJSON(data interface{}) ([]byte, error)
+- `username, password, ok := tools.BasicAuth(authHeader string) (string, string, bool)`
+- `json, err := tools.ToJSON(data interface{}) ([]byte, error)`
 
 
 ## Use
 
 #### Import
-Import ```"server"``` library.
+Import `server` library.
 
 #### Custom route type
-Write a function with params: ```http.ResponseWriter, *http.Request & map[string]string```:
+Write a function with params: `http.ResponseWriter, *http.Request & map[string]string`:
 ``` 
   func echo(w http.ResponseWriter, r *http.Request, params map[string]string) {
     fmt.Fprintf(w, "Hello, "+params["msg"])
@@ -27,7 +27,7 @@ Write a function with params: ```http.ResponseWriter, *http.Request & map[string
 ```
 
 #### Middleware
-Write, if you want, a middleware function with params: ```http.ResponseWriter, *http.Request & server.NextHandler```
+Write, if you want, a middleware function with params: `http.ResponseWriter, *http.Request & server.NextHandler`
 ```
   func middleware(w http.ResponseWriter, r *http.Request,  next server.NextHandler) {
     fmt.Fprintf(w, "Hey!\n")
@@ -36,7 +36,7 @@ Write, if you want, a middleware function with params: ```http.ResponseWriter, *
 ```
 
 #### Create router
-Instance ```server``` struct with config params:
+Instance `server` struct with config params:
 ```
   server := server.New()
 ```
@@ -50,8 +50,9 @@ Add universal headers to server. Can be overwrited with common method.
   server.SetHeader("Access-Control-Allow-Origin", "*")
   server.SetHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 ```
+
 ##### Port
-Set port server. Default ```9999```
+Set port server. Default `9999`
 ```
   server.SetPort("9999")
 ```
@@ -72,4 +73,4 @@ Set port number and start server:
   server.Run()
 ```
 
-Open ```localhost:9999/echo/world```on your browser.
+Open `localhost:9999/echo/world` on your browser.
