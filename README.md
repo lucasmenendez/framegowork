@@ -10,7 +10,6 @@ Golang micro web framework.
 
 ## Tools
 - `username, password, ok := tools.BasicAuth(authHeader string) (string, string, bool)`
-- `json, err := tools.ToJSON(data interface{}) ([]byte, error)`
 
 
 ## Use
