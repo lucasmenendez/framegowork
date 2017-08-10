@@ -13,7 +13,7 @@ type Route struct {
 	methods    []string
 	funcs      []*Handler
 	rgx        *regexp.Regexp
-	middleware *Middleware
+	middleware *Handler
 }
 
 //Extract url params and check if route match with path
@@ -54,8 +54,9 @@ func (route Route) handleRoute(c Context) {
 				f(c)
 				return
 			} else {
-				newContext := NewContext(c.Response, c.Request)
+				newContext := NewContext(route.path, c.Response, c.Request)
 				newContext.Params = c.Params
+				newContext.Handler = *route.funcs[p]
 
 				(*route.middleware)(newContext)
 				return
@@ -66,7 +67,7 @@ func (route Route) handleRoute(c Context) {
 }
 
 func (route Route) handleRouteDebug(c Context) {
-	log.Printf("[%s] %s", c.Request.Method, route.path)
+	log.Printf("[%s] %s", c.Request.Method, c.Path)
 
 	route.handleRoute(c)
 }

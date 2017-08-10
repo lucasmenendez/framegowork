@@ -17,21 +17,26 @@ import (
 	f "github.com/lucasmenendez/framework.go"
 )
 
-func echo(w f.Response, r f.Request, params f.Params) {
-	fmt.Fprintf(w, "Hello, "+params["msg"])
+func req(c f.Context) {
+	if form, err := c.ParseMultiPartForm(); err == nil {
+		fmt.Println(form)
+	} else {
+		fmt.Println(err)
+	}
 }
 
-func middleware(w f.Response, r f.Request, next f.NextHandler) {
-	fmt.Fprintf(w, "Hey!\n")
-	next.Exec(w, r)
+func mid(c f.Context) {
+	fmt.Println(c.Params)
+	c.Continue()
 }
+
 
 func main() {
 	server := f.New()
 	server.SetPort(9999)
 	server.DebugMode(true)
 
-	server.GET("/echo/:msg", echo, middleware)
+	server.POST("/request/:id", req, mid)
 	server.Run()
 }
 ```

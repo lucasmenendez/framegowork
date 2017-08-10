@@ -31,43 +31,43 @@ func (s *Server) DebugMode(mode bool) {
 }
 
 //GET
-func (s *Server) GET(path string, handler Handler, middlewares ...Middleware) {
-	var m *Middleware
+func (s *Server) GET(path string, handler Handler, middlewares ...Handler) {
+	var mid *Handler
 	if len(middlewares) > 0 {
-		m = &middlewares[0]
+		mid = &middlewares[0]
 	}
-	s.addMethod("GET", path, &handler, m)
+	s.addMethod("GET", path, &handler, mid)
 }
 
 //POST
-func (s *Server) POST(path string, handler Handler, middlewares ...Middleware) {
-	var m *Middleware
+func (s *Server) POST(path string, handler Handler, middlewares ...Handler) {
+	var mid *Handler
 	if len(middlewares) > 0 {
-		m = &middlewares[0]
+		mid = &middlewares[0]
 	}
-	s.addMethod("POST", path, &handler, m)
+	s.addMethod("POST", path, &handler, mid)
 }
 
 //PUT
-func (s *Server) PUT(path string, handler Handler, middlewares ...Middleware) {
-	var m *Middleware
+func (s *Server) PUT(path string, handler Handler, middlewares ...Handler) {
+	var mid *Handler
 	if len(middlewares) > 0 {
-		m = &middlewares[0]
+		mid = &middlewares[0]
 	}
-	s.addMethod("PUT", path, &handler, m)
+	s.addMethod("PUT", path, &handler, mid)
 }
 
 //DELETE
-func (s *Server) DELETE(path string, handler Handler, middlewares ...Middleware) {
-	var m *Middleware
+func (s *Server) DELETE(path string, handler Handler, middlewares ...Handler) {
+	var mid *Handler
 	if len(middlewares) > 0 {
-		m = &middlewares[0]
+		mid = &middlewares[0]
 	}
-	s.addMethod("DELETE", path, &handler, m)
+	s.addMethod("DELETE", path, &handler, mid)
 }
 
 //Create route with path, functions, methods, regexp to compare and middleware if exists
-func (s *Server) addMethod(method, path string, handler *Handler, middleware *Middleware) {
+func (s *Server) addMethod(method, path string, handler *Handler, middleware *Handler) {
 	var position int = -1
 	for i, route := range s.routes {
 		if route.path == path {
@@ -103,7 +103,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, route := range s.routes {
 		match, params := route.parsePath(r.URL.Path)
 		if match {
-			c := NewContext(w, r)
+			c := NewContext(r.URL.Path, w, r)
 			c.Params = params
 			if s.debug {
 				route.handleRouteDebug(c)

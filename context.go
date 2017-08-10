@@ -7,14 +7,15 @@ import (
 const defaultMemory = 32 << 20
 
 type Context struct {
+	Path string
 	Response http.ResponseWriter
 	Request *http.Request
-	Middleware Handler
+	Handler Handler
 	Params map[string]string
 }
 
-func NewContext(w http.ResponseWriter, r *http.Request) Context {
-	return Context{Response: w, Request: r}
+func NewContext(p string, w http.ResponseWriter, r *http.Request) Context {
+	return Context{Path: p, Response: w, Request: r}
 }
 
 func (c Context) ParsePostForm() (map[string][]string, error) {
