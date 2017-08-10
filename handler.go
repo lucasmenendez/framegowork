@@ -1,4 +1,4 @@
-package framegowork
+package frameworkgo
 
 import "net/http"
 
