@@ -45,7 +45,7 @@ func (route Route) parsePath(path string) (bool, Params) {
 }
 
 //Serve routes over all its methods
-func (route Route) handleRoute(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (route Route) handleRoute(w Response, r Request, params map[string]string) {
 	for p, m := range route.methods {
 		if m == r.Method {
 			if route.middleware == nil {

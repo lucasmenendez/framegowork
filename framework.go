@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+type Response http.ResponseWriter
+type Request *http.Request
 type Params map[string]string
 
 //Router struct (class abstraction)
