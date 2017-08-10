@@ -13,17 +13,23 @@ type Params map[string]string
 
 //Router struct (class abstraction)
 type Server struct {
-	routes []Route
-	port int
+	routes	[]Route
+	debug	bool
+	port	int
 }
 
 func New() *Server {
-	return &Server{[]Route{}, 9999}
+	return &Server{[]Route{}, false, 9999}
 }
 
 //Set port server
 func (s *Server) SetPort(port int) {
 	s.port = port
+}
+
+//Set debug mode
+func (s *Server) DebugMode(mode bool) {
+	s.debug = mode
 }
 
 //GET
@@ -99,7 +105,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, route := range s.routes {
 		match, params := route.parsePath(r.URL.Path)
 		if match {
-			route.handleRoute(w, r, params)
+			if s.debug {
+				route.handleRouteDebug(w, r, params)
+			} else {
+				route.handleRoute(w, r, params)
+			}
+
 			return
 		}
 	}

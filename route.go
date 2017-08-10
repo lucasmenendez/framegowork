@@ -1,9 +1,10 @@
 package frameworkgo
 
 import (
+	"log"
+	"regexp"
 	"strings"
 	"net/http"
-	"regexp"
 )
 
 //Route struct to store path with its methods and functions
@@ -45,7 +46,7 @@ func (route Route) parsePath(path string) (bool, Params) {
 }
 
 //Serve routes over all its methods
-func (route Route) handleRoute(w Response, r Request, params map[string]string) {
+func (route Route) handleRoute(w Response, r Request, params Params) {
 	for p, m := range route.methods {
 		if m == r.Method {
 			if route.middleware == nil {
@@ -60,4 +61,10 @@ func (route Route) handleRoute(w Response, r Request, params map[string]string) 
 		}
 	}
 	http.Error(w, "Not found.", 404)
+}
+
+func (route Route) handleRouteDebug(w Response, r Request, params Params) {
+	log.Printf("[%s] %s", r.Method, route.path)
+
+	route.handleRoute(w, r, params)
 }

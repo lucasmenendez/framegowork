@@ -4,7 +4,7 @@ Golang micro web framework.
 ## Install
 
 ```
-go get github.com/lucasmenendez/framegowork	
+go get github.com/lucasmenendez/framework.go	
 ```
 
 ## Demo
@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/lucasmenendez/framegowork"
+	"github.com/lucasmenendez/frameworkgo"
 )
 
 func echo(w http.ResponseWriter, r *http.Request, params framegowork.Params) {
