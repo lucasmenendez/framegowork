@@ -31,7 +31,6 @@ func (s *Server) GET(path string, handler Handler, middlewares ...Middleware) {
 		m = &middlewares[0]
 	}
 	s.addMethod("GET", path, &handler, m)
-	return
 }
 
 //POST
@@ -41,7 +40,6 @@ func (s *Server) POST(path string, handler Handler, middlewares ...Middleware) {
 		m = &middlewares[0]
 	}
 	s.addMethod("POST", path, &handler, m)
-	return
 }
 
 //PUT
@@ -51,7 +49,6 @@ func (s *Server) PUT(path string, handler Handler, middlewares ...Middleware) {
 		m = &middlewares[0]
 	}
 	s.addMethod("PUT", path, &handler, m)
-	return
 }
 
 //DELETE
@@ -61,7 +58,6 @@ func (s *Server) DELETE(path string, handler Handler, middlewares ...Middleware)
 		m = &middlewares[0]
 	}
 	s.addMethod("DELETE", path, &handler, m)
-	return
 }
 
 //Create route with path, functions, methods, regexp to compare and middleware if exists
@@ -94,8 +90,6 @@ func (s *Server) addMethod(method, path string, handler *Handler, middleware *Mi
 		var funcs []*Handler = []*Handler{handler}
 		s.routes = append(s.routes, Route{path, methods, funcs, rgx, middleware})
 	}
-
-	return
 }
 
 //Listen routes and call, if exists, its function. Set router headers
@@ -108,12 +102,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	http.Error(w, "Not found.", 404)
-	return
 }
 
 //Run on given port
 func (s *Server) Run() {
 	var port string = fmt.Sprintf(":%d", s.port)
-
 	http.ListenAndServe(port, s)
 }

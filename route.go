@@ -60,5 +60,4 @@ func (route Route) handleRoute(w http.ResponseWriter, r *http.Request, params ma
 		}
 	}
 	http.Error(w, "Not found.", 404)
-	return
 }
