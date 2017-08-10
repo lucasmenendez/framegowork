@@ -1,7 +1,7 @@
 package frameworkgo
 
-type Handler func(Response, Request, Params)
-type Middleware func(Response, Request, NextHandler)
+type Handler func(Context)
+type Middleware func(Context)
 
 //Abstraction to exec next function
 type NextHandler struct {
@@ -10,8 +10,7 @@ type NextHandler struct {
 }
 
 //Exec next function when route has a middleware
-func (n NextHandler) Exec(w Response, r Request) {
+func (n NextHandler) Exec(c Context) {
 	var next Handler = *n.handler
-	next(w, r, n.params)
+	next(c)
 }
-

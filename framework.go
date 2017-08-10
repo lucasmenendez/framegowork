@@ -7,8 +7,6 @@ import (
 	"net/http"
 )
 
-type Response http.ResponseWriter
-type Request *http.Request
 type Params map[string]string
 
 //Router struct (class abstraction)
@@ -105,10 +103,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, route := range s.routes {
 		match, params := route.parsePath(r.URL.Path)
 		if match {
+			c := NewContext(w, r)
+			c.Params = params
 			if s.debug {
-				route.handleRouteDebug(w, r, params)
+				route.handleRouteDebug(c)
 			} else {
-				route.handleRoute(w, r, params)
+				route.handleRoute(c)
 			}
 
 			return

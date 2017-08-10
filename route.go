@@ -46,25 +46,27 @@ func (route Route) parsePath(path string) (bool, Params) {
 }
 
 //Serve routes over all its methods
-func (route Route) handleRoute(w Response, r Request, params Params) {
+func (route Route) handleRoute(c Context) {
 	for p, m := range route.methods {
-		if m == r.Method {
+		if m == c.Request.Method {
 			if route.middleware == nil {
 				f := *route.funcs[p]
-				f(w, r, params)
+				f(c)
 				return
 			} else {
-				m := *route.middleware
-				m(w, r, NextHandler{route.funcs[p], params})
+				newContext := NewContext(c.Response, c.Request)
+				newContext.Params = c.Params
+
+				(*route.middleware)(newContext)
 				return
 			}
 		}
 	}
-	http.Error(w, "Not found.", 404)
+	http.Error(c.Response, "Not found.", 404)
 }
 
-func (route Route) handleRouteDebug(w Response, r Request, params Params) {
-	log.Printf("[%s] %s", r.Method, route.path)
+func (route Route) handleRouteDebug(c Context) {
+	log.Printf("[%s] %s", c.Request.Method, route.path)
 
-	route.handleRoute(w, r, params)
+	route.handleRoute(c)
 }
