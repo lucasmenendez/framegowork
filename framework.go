@@ -3,11 +3,8 @@ package frameworkgo
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"net/http"
 )
-
-type Params map[string]string
 
 //Router struct (class abstraction)
 type Server struct {
@@ -76,32 +73,26 @@ func (s *Server) addMethod(method, path string, handler *Handler, middleware *Ha
 		}
 	}
 
-	var res []string
-	var pathComponents []string = strings.Split(path, "/")
-	for _, str := range pathComponents {
-		if len(str) > 0 && string(str[0]) == string(":") {
-			str = "([A-Za-z0-9-_]+)"
-		}
-		res = append(res, str)
-	}
+	var paramRegex *regexp.Regexp = regexp.MustCompile(`:([A-Za-z0-9-_]+)`)
+	var newPath []byte = paramRegex.ReplaceAll([]byte(path), []byte("([A-Za-z0-9-_]+)"))
+	var rgx *regexp.Regexp = regexp.MustCompile(string(newPath))
 
-	var rgx *regexp.Regexp = regexp.MustCompile(strings.Join(res, "/"))
 	if position > -1 {
 		s.routes[position].methods = append(s.routes[position].methods, method)
-		s.routes[position].funcs = append(s.routes[position].funcs, handler)
+		s.routes[position].handlers = append(s.routes[position].handlers, handler)
 		s.routes[position].rgx = rgx
 		s.routes[position].middleware = middleware
 	} else {
 		var methods []string = []string{method}
-		var funcs []*Handler = []*Handler{handler}
-		s.routes = append(s.routes, Route{path, methods, funcs, rgx, middleware})
+		var handlers []*Handler = []*Handler{handler}
+		s.routes = append(s.routes, Route{path, methods, handlers, rgx, middleware})
 	}
 }
 
 //Listen routes and call, if exists, its function. Set router headers
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, route := range s.routes {
-		match, params := route.parsePath(r.URL.Path)
+		match, params := ParseParams(route, r.URL.Path)
 		if match {
 			c := NewContext(r.URL.Path, w, r)
 			c.Params = params
