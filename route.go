@@ -18,13 +18,13 @@ type Route struct {
 //Serve routes over all its methods
 func (route Route) handleRoute(c Context) {
 	for p, m := range route.methods {
-		if m == c.Request.Method {
+		if m == c.request.Method {
 			if route.middleware == nil {
 				f := *route.handlers[p]
 				f(c)
 				return
 			} else {
-				newContext := NewContext(route.path, c.Response, c.Request)
+				newContext := NewContext(route.path, c.response, c.request)
 				newContext.Params = c.Params
 				newContext.Handler = *route.handlers[p]
 
@@ -33,10 +33,10 @@ func (route Route) handleRoute(c Context) {
 			}
 		}
 	}
-	http.Error(c.Response, "Method not allowed.", 405)
+	http.Error(c.response, "Method not allowed.", 405)
 }
 
 func (route Route) handleRouteDebug(c Context) {
-	log.Printf("[%s] %s", c.Request.Method, c.Path)
+	log.Printf("[%s] %s", c.request.Method, c.Path)
 	route.handleRoute(c)
 }
