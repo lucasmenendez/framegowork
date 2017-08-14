@@ -18,8 +18,11 @@ import (
 )
 
 func req(c f.Context) {
-	if form, err := c.ParseMultiPartForm(); err == nil {
-		fmt.Println(form)
+	var err error
+	var form f.Form
+	if form, err = c.ParseForm(); err == nil {
+		fmt.Println(form["key"])
+		c.PlainWrite([]byte("HEY"), 200)
 	} else {
 		fmt.Println(err)
 	}
