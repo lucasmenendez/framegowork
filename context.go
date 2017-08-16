@@ -10,6 +10,11 @@ const defaultMemory = 32 << 20 //32 Mb
 
 type Form map[string]string
 
+func (f Form) Get(key string) (string, bool) {
+	val, ok := f[key]
+	return val, ok
+}
+
 type Context struct {
 	Path     string
 	response http.ResponseWriter
@@ -40,6 +45,11 @@ func (c Context) ParseForm() (Form, error) {
 func (c Context) WriteError(err error, status int) {
 	c.response.WriteHeader(status)
 	c.response.Write([]byte(err.Error()))
+}
+
+func (c Context) WriteErrorMessage(err string, status int) {
+	c.response.WriteHeader(status)
+	c.response.Write([]byte(err))
 }
 
 func (c Context) PlainWrite(content []byte, status int) {

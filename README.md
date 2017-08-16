@@ -21,8 +21,11 @@ func req(c f.Context) {
 	var err error
 	var form f.Form
 	if form, err = c.ParseForm(); err == nil {
-		fmt.Println(form["key"])
-		c.PlainWrite([]byte("HEY"), 200)
+		if key, ok := form.Get("key"); ok {
+			fmt.Println(key)
+		}
+		
+		c.PlainWrite([]byte("Hello world!"), 200)
 	} else {
 		fmt.Println(err)
 	}
