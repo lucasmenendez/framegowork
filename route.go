@@ -19,6 +19,12 @@ type Route struct {
 func (route Route) handleRoute(c Context) {
 	for p, m := range route.methods {
 		if m == c.request.Method {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Printf("[Error] %s", r)
+				}
+			}()
+
 			if route.middleware == nil {
 				f := *route.handlers[p]
 				f(c)

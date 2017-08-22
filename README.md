@@ -24,11 +24,10 @@ func req(c f.Context) {
 		if key, ok := form.Get("key"); ok {
 			fmt.Println(key)
 		}
-		
-		c.PlainWrite([]byte("Hello world!"), 200)
 	} else {
 		fmt.Println(err)
 	}
+	c.PlainWrite([]byte("Hello world!"), 200)
 }
 
 func mid(c f.Context) {

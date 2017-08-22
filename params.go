@@ -2,15 +2,30 @@ package frameworkgo
 
 import "strings"
 
+const routePattern string = "/"
+
 type Params map[string]string
+
+func cleanComponents(raw_components, pattern string) []string {
+	var components []string = strings.Split(raw_components, pattern)
+
+	var cleaned []string
+	for _, c := range components {
+		if strings.TrimSpace(c) != "" {
+			cleaned = append(cleaned, c)
+		}
+	}
+
+	return cleaned
+}
 
 //Extract url params and check if route match with path
 func ParseParams(route Route, path string) (bool, Params) {
 	var attrs []string
 	var params Params = make(Params)
 
-	var routeComponents []string = strings.Split(route.path, "/")
-	var pathComponents []string = strings.Split(path, "/")
+	var routeComponents []string = cleanComponents(route.path, routePattern)
+	var pathComponents []string = cleanComponents(path, routePattern)
 
 	if len(routeComponents) == len(pathComponents) {
 		for _, s := range routeComponents {
@@ -26,10 +41,7 @@ func ParseParams(route Route, path string) (bool, Params) {
 			}
 
 			return true, params
-		} else {
-			return false, params
 		}
-	} else {
-		return false, params
 	}
+	return false, params
 }
