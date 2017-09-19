@@ -3,7 +3,6 @@ package frameworkgo
 import (
 	"log"
 	"regexp"
-	"net/http"
 )
 
 //Route struct to store path with its methods and functions
@@ -39,7 +38,7 @@ func (route Route) handleRoute(c Context) {
 			}
 		}
 	}
-	http.Error(c.response, "Method not allowed.", 405)
+	c.WriteErrorMessage("Method not allowed.", 405)
 }
 
 func (route Route) handleRouteDebug(c Context) {

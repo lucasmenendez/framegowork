@@ -43,18 +43,20 @@ func (c Context) ParseForm() (Form, error) {
 }
 
 func (c Context) WriteError(err error, status int) {
-	c.response.WriteHeader(status)
-	c.response.Write([]byte(err.Error()))
+	http.Error(c.response, err.Error(), status)
+	return
 }
 
 func (c Context) WriteErrorMessage(err string, status int) {
-	c.response.WriteHeader(status)
-	c.response.Write([]byte(err))
+	http.Error(c.response, err, status)
+	return
 }
 
 func (c Context) PlainWrite(content []byte, status int) {
-	c.response.WriteHeader(status)
+	c.response.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	c.response.Write(content)
+	c.response.WriteHeader(status)
+	return
 }
 
 func (c Context) JsonWrite(content interface{}, status int)  {
@@ -64,4 +66,5 @@ func (c Context) JsonWrite(content interface{}, status int)  {
 		c.response.Header().Set("Content-Type", "application/json")
 		c.PlainWrite(b, status)
 	}
+	return
 }
