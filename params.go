@@ -6,6 +6,11 @@ const routePattern string = "/"
 
 type Params map[string]string
 
+func (params Params) Get(key string) (string, bool) {
+	value, ok := params[key]
+	return value, ok
+}
+
 func cleanComponents(raw_components, pattern string) []string {
 	var components []string = strings.Split(raw_components, pattern)
 

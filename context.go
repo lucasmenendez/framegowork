@@ -20,7 +20,7 @@ type Context struct {
 	response http.ResponseWriter
 	request  *http.Request
 	Handler  Handler
-	Params   map[string]string
+	Params   Params
 }
 
 func NewContext(p string, w http.ResponseWriter, r *http.Request) Context {
@@ -49,19 +49,19 @@ func (c Context) FormValue(key string) (string, bool) {
 
 func (c Context) WriteError(err error, status int) {
 	http.Error(c.response, err.Error(), status)
-	panic(nil)
+	return
 }
 
 func (c Context) WriteErrorMessage(err string, status int) {
 	http.Error(c.response, err, status)
-	panic(nil)
+	return
 }
 
 func (c Context) PlainWrite(content []byte, status int) {
 	c.response.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	c.response.Write(content)
 	c.response.WriteHeader(status)
-	panic(nil)
+	c.response.Write(content)
+	return
 }
 
 func (c Context) JsonWrite(content interface{}, status int)  {
@@ -69,8 +69,8 @@ func (c Context) JsonWrite(content interface{}, status int)  {
 		log.Fatal(err)
 	} else {
 		c.response.Header().Set("Content-Type", "application/json")
-		c.response.Write(content)
 		c.response.WriteHeader(status)
+		c.response.Write(content)
 	}
-	panic(nil)
+	return
 }
