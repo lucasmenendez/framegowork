@@ -1,13 +1,53 @@
 package frameworkgo
 
-import "strings"
+import (
+	"strings"
+	"strconv"
+)
 
 const routePattern string = "/"
 
 type Params map[string]string
 
-func (params Params) Get(key string) (string, bool) {
-	value, ok := params[key]
+// Return attribute casted to int from Params if exists
+func (p Params) GetInt(key string) (res int, exists bool) {
+	var raw string
+	if raw, exists = p[key]; exists {
+		if res, e := strconv.Atoi(raw); e == nil {
+			return res, true
+		}
+	}
+
+	return res, false
+}
+
+// Return attribute casted to float from Params if exists
+func (p Params) GetFloat(key string) (res float64, exists bool) {
+	var raw string
+	if raw, exists = p[key]; exists {
+		if res, e := strconv.ParseFloat(raw, 64); e == nil {
+			return res, true
+		}
+	}
+
+	return res, false
+}
+
+// Return attribute casted to bool from Params if exists
+func (p Params) GetBool(key string) (res bool, exists bool) {
+	var raw string
+	if raw, exists = p[key]; exists {
+		if res, e := strconv.ParseBool(raw); e == nil {
+			return res, true
+		}
+	}
+
+	return res, false
+}
+
+// Return raw attribute from Params if exists
+func (p Params) GetRaw(key string) (string, bool) {
+	value, ok := p[key]
 	return value, ok
 }
 
