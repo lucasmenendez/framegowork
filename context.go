@@ -1,9 +1,9 @@
-package frameworkgo
+package shgf
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
-	"encoding/json"
 )
 
 const defaultMemory = 32 << 20 //32 Mb
@@ -64,7 +64,7 @@ func (c Context) PlainWrite(content []byte, status int) {
 	return
 }
 
-func (c Context) JsonWrite(content interface{}, status int)  {
+func (c Context) JsonWrite(content interface{}, status int) {
 	if content, err := json.Marshal(content); err != nil {
 		log.Fatal(err)
 	} else {

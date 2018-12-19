@@ -1,4 +1,4 @@
-package frameworkgo
+package shgf
 
 type Handler func(Context)
 

@@ -1,8 +1,8 @@
-package frameworkgo
+package shgf
 
 import (
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const routePattern string = "/"

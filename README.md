@@ -1,10 +1,10 @@
-# framework.go
-Golang micro web framework.
+# SHGF: Simple HTTP golang framework
+Only another golang micro web framework.
 
 ## Install
 
 ```
-go get github.com/lucasmenendez/framework.go	
+go get github.com/lucasmenendez/shgf	
 ```
 
 ## Demo
@@ -14,7 +14,7 @@ package main
 
 import (
 	"fmt"
-	f "github.com/lucasmenendez/framework.go"
+	f "github.com/lucasmenendez/shgf"
 )
 
 func req(c f.Context) {

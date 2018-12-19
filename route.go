@@ -1,4 +1,4 @@
-package frameworkgo
+package shgf
 
 import (
 	"log"
