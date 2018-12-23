@@ -1,10 +1,4 @@
 package shgf
 
-type Handler func(Context)
-
-//Exec next function when route has a middleware
-func (c Context) Continue() {
-	var next = c.Handler
-	c.Handler = nil
-	next(c)
-}
+type handler func(req request, ctx context) response
+type handlers []handler
