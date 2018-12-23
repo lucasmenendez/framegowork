@@ -1,7 +1,7 @@
 package shgf
 
 import (
-	"log"
+	"fmt"
 	"regexp"
 )
 
@@ -20,7 +20,7 @@ func (route Route) handleRoute(c Context) {
 		if m == c.request.Method {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Printf("[Error] %s", r)
+					fmt.Printf("[Error] %s", r)
 				}
 			}()
 
@@ -42,6 +42,6 @@ func (route Route) handleRoute(c Context) {
 }
 
 func (route Route) handleRouteDebug(c Context) {
-	log.Printf("[%s] %s", c.request.Method, c.Path)
+	fmt.Printf("[%s] %s", c.request.Method, c.Path)
 	route.handleRoute(c)
 }

@@ -34,7 +34,7 @@ func (c Context) ParseForm() (Form, error) {
 		return nil, err
 	}
 
-	var form Form = make(map[string]string, len(c.request.PostForm))
+	var form = make(map[string]string, len(c.request.PostForm))
 	for k, v := range c.request.PostForm {
 		form[k] = v[0]
 	}
@@ -43,7 +43,7 @@ func (c Context) ParseForm() (Form, error) {
 }
 
 func (c Context) FormValue(key string) (string, bool) {
-	var value string = c.request.FormValue(key)
+	var value = c.request.FormValue(key)
 	return value, value != ""
 }
 
