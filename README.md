@@ -14,34 +14,39 @@ package main
 
 import (
 	"fmt"
-	f "github.com/lucasmenendez/shgf"
+
+	"github.com/lucasmenendez/shgf"
 )
 
-func req(c f.Context) {
+func req(ctx *shgf.Context) (res *shgf.Response) {
 	var err error
-	var form f.Form
-	if form, err = c.ParseForm(); err == nil {
-		if key, ok := form.Get("key"); ok {
-			fmt.Println(key)
-		}
-	} else {
+	if res, err = shgf.NewResponse(200); err != nil {
 		fmt.Println(err)
+	} else if err = ctx.ParseParams(); err != nil {
+		fmt.Println(err)
+	} else if ctx.Params["bar"] == "bar" {
+		if err = res.JSON(ctx.Params); err != nil {
+			fmt.Println(err)
+		}
+
+		return
 	}
-	c.PlainWrite([]byte("Hello world!"), 200)
+	res, _ = shgf.NewResponse(403)
+
+	return
 }
 
-func mid(c f.Context) {
-	fmt.Println(c.Params)
-	c.Continue()
+func mid(ctx *shgf.Context) (res *shgf.Response) {
+	return ctx.Next()
 }
-
 
 func main() {
-	server := f.New()
-	server.SetPort(9999)
-	server.DebugMode(true)
+	s, err := shgf.New("0.0.0.0", 9999, true)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	server.POST("/request/:id", req, mid)
-	server.Run()
+	s.GET("/foo/<string:bar>", req, mid)
+	s.Listen()
 }
 ```
