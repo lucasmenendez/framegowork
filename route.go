@@ -9,17 +9,33 @@ import (
 )
 
 const (
-	pathRgx    = `(\/.*)+`
-	paramDel   = `\/`
-	paramTemp  = `<(int|string|float|bool):(.*)>`
+	// pathRgx matches with any string between slashes. Used for validation.
+	pathRgx = `(\/.*)+`
+	// paramDel matches with slashes. Used for split and join paths.
+	paramDel = `\/`
+	// paramTemp matches with param format. Used for extract params from the
+	// path.
+	paramTemp = `<(int|string|float|bool):(.*)>`
+	// matcherRgx its a template to generate the matcher to handling routes.
 	matcherRgx = `(?P<%s_%s>%s)`
-	paramRgx   = `(int|string|float|bool)_(.+)`
-	floatRgx   = `[0-9]+\.[0-9]+`
-	intRgx     = `[0-9]+`
-	boolRgx    = `true|false`
-	strRgx     = `.+`
+	// paramRgx mathes with the route handled param extracting param type and
+	// content at once.
+	paramRgx = `(int|string|float|bool)_(.+)`
+	// floatRgx matches with float number into a string. Used to generate
+	// the matcher to handling routes with float params.
+	floatRgx = `[0-9]+\.[0-9]+`
+	// intRgx matches with int number into a string. Used to generate
+	// the matcher to handling routes with int params.
+	intRgx = `[0-9]+`
+	// boolRgx matches with bool number into a string. Used to generate
+	// the matcher to handling routes with bool params.
+	boolRgx = `true|false`
+	// stringRgx matches with string number into a string. Used to generate
+	// the matcher to handling routes with string params.
+	strRgx = `.+`
 )
 
+// validMethods contains all HTTP Methods into a string slice.
 var validMethods = []string{
 	http.MethodGet,
 	http.MethodHead,
@@ -32,8 +48,11 @@ var validMethods = []string{
 	http.MethodTrace,
 }
 
+// Handler type wraps handler function that receives a Context pointer and
+// returns a Response pointer as a result of handled Request.
 type Handler func(*Context) *Response
 
+// route struct contains required data to register a HTTP route to handle.
 type route struct {
 	method     string
 	path       string
@@ -42,6 +61,9 @@ type route struct {
 	matcher    *regexp.Regexp
 }
 
+// newRoute function create a new route by method, path and route handler
+// provided. Checks if params provided are valid and call some other functions
+// to prepare the route to be appended.
 func newRoute(method, path string, handler *Handler) (r *route, e error) {
 	var valid = false
 	for _, validMethod := range validMethods {
@@ -79,6 +101,10 @@ func newRoute(method, path string, handler *Handler) (r *route, e error) {
 	return
 }
 
+// parse function generates a matcher Regexp for the current route, including
+// route params. Validates that the current route has the required data
+// available and parses route params to generate the matcher. If any of this
+// processes raise an error, function return ServerErr.
 func (r *route) parse() (e error) {
 	if r.path == "" {
 		e = NewServerErr("empty path not allowed")
@@ -87,8 +113,11 @@ func (r *route) parse() (e error) {
 		return
 	}
 
-	var splitter, reader = regexp.MustCompile(paramDel), regexp.MustCompile(paramTemp)
-	var items []string
+	var (
+		splitter = regexp.MustCompile(paramDel)
+		reader   = regexp.MustCompile(paramTemp)
+		items    []string
+	)
 	for _, i := range splitter.Split(r.path, -1) {
 		var item string
 		if res := reader.FindStringSubmatch(i); len(res) == 3 {
@@ -121,6 +150,9 @@ func (r *route) parse() (e error) {
 	return
 }
 
+// handle function calls to the current route handler or middleware, if it is
+// available, with the context provided as a param. If any of both functions is
+// available, returns nil, else returns the result of calling the function.
 func (r *route) handle(ctx *Context) *Response {
 	var f Handler
 	if r.middleware != nil && r.handler != nil {

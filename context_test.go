@@ -65,10 +65,6 @@ func TestContext_parseParams(t *testing.T) {
 	}
 }
 
-func TestContextAddNext(t *testing.T) {
-
-}
-
 func TestContextNext(t *testing.T) {
 	resPass, _ := NewResponse(200)
 	var nextPass Handler = func(ctx *Context) *Response {

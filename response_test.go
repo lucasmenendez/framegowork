@@ -1,47 +1,11 @@
 package shgf
 
 import (
-	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
-type testResponse struct {
-	t      *testing.T
-	header http.Header
-	body   []byte
-	status int
-}
-
-func NewTestResponse(t *testing.T) *testResponse {
-	return &testResponse{
-		t:      t,
-		header: make(http.Header),
-	}
-}
-
-func (r *testResponse) Header() http.Header {
-	return r.header
-}
-
-func (r *testResponse) Write(body []byte) (int, error) {
-	r.body = body
-	return len(body), nil
-}
-
-func (r *testResponse) WriteHeader(status int) {
-	r.status = status
-}
-
-func (r *testResponse) Assert(status int, body string) {
-	if r.status != status {
-		r.t.Errorf("expected status %+v to equal %+v", r.status, status)
-	}
-	if string(r.body) != body {
-		r.t.Errorf("expected body %+v to equal %+v", string(r.body), body)
-	}
-}
-
-func TestParseBody(t *testing.T) {
+func Test_parseBody(t *testing.T) {
 	if _, e := parseBody(12); e == nil {
 		t.Error("expected error, got nil")
 	}
@@ -83,9 +47,36 @@ func TestNewResponse(t *testing.T) {
 		t.Errorf("expected error 500, got %d", r.Status)
 	}
 }
-func testResponse_submit(t *testing.T) {
+
+func TestResponseJSON(t *testing.T) {
+	var d = map[string]interface{}{
+		"id":       1,
+		"username": "testuser",
+		"password": "testpass",
+	}
+	var rd = "{\"id\":1,\"password\":\"testpass\",\"username\":\"testuser\"}"
+
+	var e error
+	var r *Response
+	if r, e = NewResponse(200); e != nil {
+		t.Errorf("expected nil, got %s", e)
+	}
+
+	if e = r.JSON(d); e != nil {
+		t.Errorf("expected nil, got %s", e)
+	} else if h, ok := r.Header["Content-type"]; !ok {
+		t.Error("expected true, got false")
+	} else if h[0] != "application/json" {
+		t.Errorf("expected \"application/json\", got %s", h[0])
+	} else if b := string(r.Body); b != rd {
+		t.Errorf("expected %s, got %s", rd, b)
+	}
+}
+
+func TestResponse_submit(t *testing.T) {
 	r, _ := NewResponse(200)
-	if e := r.Submit(NewTestResponse(t)); e != nil {
+	w := httptest.NewRecorder()
+	if e := r.submit(w, false); e != nil {
 		t.Errorf("expected nil, got %s", e)
 	}
 }

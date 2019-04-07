@@ -1,80 +1,112 @@
+// Package shgf its a simple http framework for go language. The framework
+// provides simple API to create a HTTP server and a group of functions to
+// register new available routes with its handler by HTTP method.
 package shgf
 
-import (
-	"net/http"
-)
+import "net/http"
 
+// Server struct contains the server's hostname and port. Server, also has a
+// base server associated. Any Server instance has associated functions to
+// register new routes with its handler bty HTTP method.
 type Server struct {
 	Hostname string
 	Port     int
-	Debug    bool
 	base     *server
 }
 
+// New function creates a new Server instance with hostname and port provided by
+// the user.
 func New(hostname string, port int, debug bool) (srv *Server, err error) {
 	var base *server
 	if base, err = initServer(hostname, port, debug); err != nil {
 		return
 	}
-	srv = &Server{hostname, port, debug, base}
+	srv = &Server{hostname, port, base}
 	return
 }
 
+// register function receives a HTTP method, route path and associated handlers,
+// one at least. The function creates new route with that parameters (checking
+// handler and middleware) and, if that route not currently exists, add it to
+// the server.
 func (srv *Server) register(method, path string, handlers ...Handler) error {
 	if len(handlers) == 0 {
 		return NewServerErr("not handler provided")
 	}
 
-	var handler = handlers[0]
-	if r, e := newRoute(method, path, &handler); e != nil {
+	var (
+		e       error
+		r       *route
+		handler = handlers[0]
+	)
+	if r, e = newRoute(method, path, &handler); e != nil {
 		return e
-	} else {
-		if len(handlers) == 2 {
-			r.middleware = &handlers[1]
-		} else if len(handlers) > 2 {
-			NewServerErr("only can add one middleware per route")
-		}
-
-		return srv.base.addRoute(r)
 	}
+
+	if len(handlers) == 2 {
+		r.middleware = &handlers[1]
+	} else if len(handlers) > 2 {
+		NewServerErr("only can add one middleware per route")
+	}
+
+	return srv.base.addRoute(r)
 }
 
-func (srv *Server) GET(path string, handlers ...Handler) error {
+// Get function add new route on GET HTTP method with path and handlers
+// provided.
+func (srv *Server) Get(path string, handlers ...Handler) error {
 	return srv.register(http.MethodGet, path, handlers...)
 }
 
-func (srv *Server) HEAD(path string, handlers ...Handler) error {
+// Head function add new route on HEAD HTTP method with path and handlers
+// provided.
+func (srv *Server) Head(path string, handlers ...Handler) error {
 	return srv.register(http.MethodHead, path, handlers...)
 }
 
-func (srv *Server) POST(path string, handlers ...Handler) error {
+// Post function add new route on POST HTTP method with path and handlers
+// provided.
+func (srv *Server) Post(path string, handlers ...Handler) error {
 	return srv.register(http.MethodPost, path, handlers...)
 }
 
-func (srv *Server) PUT(path string, handlers ...Handler) error {
+// Put function add new route on PUT HTTP method with path and handlers
+// provided.
+func (srv *Server) Put(path string, handlers ...Handler) error {
 	return srv.register(http.MethodPut, path, handlers...)
 }
 
-func (srv *Server) PATCH(path string, handlers ...Handler) error {
+// Patch function add new route on PATCH HTTP method with path and handlers
+// provided.
+func (srv *Server) Patch(path string, handlers ...Handler) error {
 	return srv.register(http.MethodPatch, path, handlers...)
 }
 
-func (srv *Server) DELETE(path string, handlers ...Handler) error {
+// Delete function add new route on DELETE HTTP method with path and handlers
+// provided.
+func (srv *Server) Delete(path string, handlers ...Handler) error {
 	return srv.register(http.MethodDelete, path, handlers...)
 }
 
-func (srv *Server) CONNECT(path string, handlers ...Handler) error {
+// Connect function add new route on CONNECT HTTP method with path and handlers
+// provided.
+func (srv *Server) Connect(path string, handlers ...Handler) error {
 	return srv.register(http.MethodConnect, path, handlers...)
 }
 
-func (srv *Server) OPTIONS(path string, handlers ...Handler) error {
+// Options function add new route on OPTIONS HTTP method with path and handlers
+// provided.
+func (srv *Server) Options(path string, handlers ...Handler) error {
 	return srv.register(http.MethodOptions, path, handlers...)
 }
 
-func (srv *Server) TRACE(path string, handlers ...Handler) error {
+// Trace function add new route on TRACE HTTP method with path and handlers
+// provided.
+func (srv *Server) Trace(path string, handlers ...Handler) error {
 	return srv.register(http.MethodTrace, path, handlers...)
 }
 
+// Listen function starts base server to listen new requests.
 func (srv *Server) Listen() error {
 	return srv.base.start()
 }

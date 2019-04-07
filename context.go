@@ -57,12 +57,8 @@ func (ctx *Context) ParseParams() (err error) {
 	return
 }
 
-func (ctx *Context) AddNext(next *Handler) {
-	ctx.next = next
-}
-
 // Next function invokes the main handler from middleware. If next function is
-// invoked outside of middleware function, internal server errror is returned.
+// invoked outside of middleware function, internal server error is returned.
 func (ctx *Context) Next() *Response {
 	if ctx.next == nil {
 		var err = "next function not defined"

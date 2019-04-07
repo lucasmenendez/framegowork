@@ -2,9 +2,12 @@ package shgf
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
+// HTTPStatus variable contains a map of int status code and its associated
+// []byte message.
 var HTTPStatus = map[int][]byte{
 	200: []byte("OK"),
 	201: []byte("Created"),
@@ -65,12 +68,16 @@ var HTTPStatus = map[int][]byte{
 	511: []byte("Network Authentication Required"),
 }
 
+// Response struct its a simplified abstraction of a HTTP response with Header,
+// Status and Body.
 type Response struct {
 	Status int
 	Header map[string][]string
 	Body   []byte
 }
 
+// parseBody function casts a candidate to a valid response body. Casts between
+// []byte, string, ServerErr and error to []byte.
 func parseBody(d interface{}) (b []byte, e error) {
 	switch d.(type) {
 	case []byte:
@@ -90,6 +97,10 @@ func parseBody(d interface{}) (b []byte, e error) {
 	return
 }
 
+// NewResponse function creates a Response by status int code and a (optional)
+// candidate to body. The function creates a default internal server response,
+// checks if some data is provided as body and parses it, checks if the provided
+// status is valid and returns a Response.
 func NewResponse(s int, d ...interface{}) (r *Response, e error) {
 	var header = map[string][]string{"Content-type": {"text/plain"}}
 	r = &Response{Status: 500, Header: header, Body: []byte(HTTPStatus[500])}
@@ -117,33 +128,51 @@ func NewResponse(s int, d ...interface{}) (r *Response, e error) {
 	return
 }
 
+// JSON function parses provided data interface{} to []byte marshaling it and
+// sets HTTP header JSON Content-type and parsed data as Body of current
+// Response.
 func (r *Response) JSON(d interface{}) (e error) {
 	r.Header = map[string][]string{"Content-type": {"application/json"}}
 	r.Body, e = json.Marshal(d)
 	return
 }
 
+// BadRequest function creates a error Response with "Bad Request" HTTP status
+// code and sets as Body the default status message with a parsed a set of err
+// interface{} as ServerErr.
 func BadRequest(err ...interface{}) (r *Response) {
-	r, _ = NewResponse(400, NewServerErr(string(HTTPStatus[400]), err))
+	r, _ = NewResponse(400, NewServerErr(string(HTTPStatus[400]), err...))
 	return
 }
 
+// NotFound function creates a error Response with "Not Found" HTTP status
+// code and sets as Body the default status message with a parsed a set of err
+// interface{} as ServerErr.
 func NotFound(err ...interface{}) (r *Response) {
-	r, _ = NewResponse(404, NewServerErr(string(HTTPStatus[404]), err))
+	r, _ = NewResponse(404, NewServerErr(string(HTTPStatus[404]), err...))
 	return
 }
 
+// MethodNotAllowed function creates a error Response with "Method Not Allowed"
+// HTTP status code and sets as Body the default status message with a parsed a
+// set of err interface{} as ServerErr.
 func MethodNotAllowed(err ...interface{}) (r *Response) {
-	r, _ = NewResponse(405, NewServerErr(string(HTTPStatus[405]), err))
+	r, _ = NewResponse(405, NewServerErr(string(HTTPStatus[405]), err...))
 	return
 }
 
+// InternalServerErr function creates a error Response with "Internal Server
+// Error" HTTP status code and sets as Body the default status message with a
+// parsed a set of err interface{} as ServerErr.
 func InternalServerErr(err ...interface{}) (r *Response) {
-	r, _ = NewResponse(500, NewServerErr(string(HTTPStatus[500]), err))
+	r, _ = NewResponse(500, NewServerErr(string(HTTPStatus[500]), err...))
 	return
 }
 
-func (r *Response) Submit(w http.ResponseWriter) (e error) {
+// submit function writes Response into a http.ResponseWriter provided. It adds
+// each Response Header, the Response Status and Body to http.ResponseWriter and
+// write a trace of the response into the log if debug mode is enabled.
+func (r *Response) submit(w http.ResponseWriter, debug bool) (e error) {
 	for k, vl := range r.Header {
 		for _, v := range vl {
 			w.Header().Add(k, v)
@@ -151,6 +180,8 @@ func (r *Response) Submit(w http.ResponseWriter) (e error) {
 	}
 
 	w.WriteHeader(r.Status)
-	_, e = w.Write(r.Body)
+	if _, e = w.Write(r.Body); e == nil && debug {
+		log.Printf("-> [%d] %s", r.Status, string(r.Body))
+	}
 	return
 }
