@@ -1,5 +1,9 @@
+[![GoDoc](https://godoc.org/github.com/lucasmenendez/shgf?status.svg)](https://godoc.org/github.com/lucasmenendez/shgf)
+[![Build Status](https://travis-ci.org/lucasmenendez/shgf.svg?branch=master)](https://travis-ci.org/lucasmenendez/shgf)
+[![Report](https://goreportcard.com/badge/github.com/lucasmenendez/shgf)](https://goreportcard.com/report/github.com/lucasmenendez/shgf)
+
 # SHGF: Simple HTTP golang framework
-Only another golang micro web framework.
+Opinionated simple HTTP golang framework. Provides simple API to create a HTTP server and a group of functions to register new available routes with its handler by HTTP method.
 
 ## Install
 
@@ -7,7 +11,10 @@ Only another golang micro web framework.
 go get github.com/lucasmenendez/shgf	
 ```
 
-## Demo
+## Docs
+Read all the documentation into [GoDoc](https://godoc.org/github.com/lucasmenendez/shgf) article.
+
+## Example
 
 ```go
 package main
