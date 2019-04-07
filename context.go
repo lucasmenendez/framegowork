@@ -1,76 +1,71 @@
 package shgf
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
+	"regexp"
+	"strconv"
 )
 
-const defaultMemory = 32 << 20 //32 Mb
-
-type Form map[string]string
-
-func (f Form) Get(key string) (string, bool) {
-	val, ok := f[key]
-	return val, ok
-}
-
+// Context struct contains current request metainformation and utils like URL
+// route params values, pointers to following functions or functions to handle
+// with request body.
 type Context struct {
-	Path     string
-	response http.ResponseWriter
-	request  *http.Request
-	Handler  Handler
-	Params   Params
+	route   *route
+	next    *Handler
+	Request *http.Request
+	Params  map[string]interface{}
 }
 
-func NewContext(p string, w http.ResponseWriter, r *http.Request) Context {
-	return Context{Path: p, response: w, request: r}
-}
+// ParseParams function extract values of URL params defined by current route.
+// Every param are labeled, so ParseParams only extract the values that match
+// with route matcher naming each one with its label, and casting it with the
+// type associated. All the params are stored into Params parameter of Context.
+func (ctx *Context) ParseParams() (err error) {
+	var (
+		splitter = regexp.MustCompile(paramRgx)
+		keys     = ctx.route.matcher.SubexpNames()
+		values   = ctx.route.matcher.FindStringSubmatch(ctx.Request.URL.Path)
+	)
 
-func (c Context) ParseForm() (Form, error) {
-	if err := c.request.ParseForm(); err != nil {
-		return nil, err
-	} else if err := c.request.ParseMultipartForm(defaultMemory); err != nil {
-		return nil, err
+	ctx.Params = map[string]interface{}{}
+	keys, values = keys[1:], values[1:]
+	for i, k := range keys {
+		if k == "" || values[i] == "" {
+			return NewServerErr("mismatch labeled params with values provided")
+		}
+
+		var metadata = splitter.FindStringSubmatch(k)[1:3]
+		switch t, a, v := metadata[0], metadata[1], values[i]; t {
+		case "float":
+			ctx.Params[a], err = strconv.ParseFloat(v, 64)
+			break
+		case "int":
+			ctx.Params[a], err = strconv.Atoi(v)
+			break
+		case "bool":
+			ctx.Params[a] = (v == "true")
+			break
+		default:
+			ctx.Params[a] = v
+		}
+
+		if err != nil {
+			return
+		}
 	}
 
-	var form = make(map[string]string, len(c.request.PostForm))
-	for k, v := range c.request.PostForm {
-		form[k] = v[0]
+	return
+}
+
+// Next function invokes the main handler from middleware. If next function is
+// invoked outside of middleware function, internal server error is returned.
+func (ctx *Context) Next() *Response {
+	if ctx.next == nil {
+		var err = "next function not defined"
+		return InternalServerErr(err)
 	}
 
-	return form, nil
-}
-
-func (c Context) FormValue(key string) (string, bool) {
-	var value = c.request.FormValue(key)
-	return value, value != ""
-}
-
-func (c Context) WriteError(err error, status int) {
-	http.Error(c.response, err.Error(), status)
-	return
-}
-
-func (c Context) WriteErrorMessage(err string, status int) {
-	http.Error(c.response, err, status)
-	return
-}
-
-func (c Context) PlainWrite(content []byte, status int) {
-	c.response.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	c.response.WriteHeader(status)
-	c.response.Write(content)
-	return
-}
-
-func (c Context) JsonWrite(content interface{}, status int) {
-	if content, err := json.Marshal(content); err != nil {
-		log.Fatal(err)
-	} else {
-		c.response.Header().Set("Content-Type", "application/json")
-		c.response.WriteHeader(status)
-		c.response.Write(content)
-	}
-	return
+	var f = (*ctx.next)
+	ctx.next = nil
+	return f(ctx)
 }

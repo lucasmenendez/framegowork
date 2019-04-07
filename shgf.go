@@ -1,114 +1,112 @@
+// Package shgf its a simple http framework for go language. The framework
+// provides simple API to create a HTTP server and a group of functions to
+// register new available routes with its handler by HTTP method.
 package shgf
 
-import (
-	"fmt"
-	"net/http"
-	"regexp"
-)
+import "net/http"
 
-//Router struct (class abstraction)
+// Server struct contains the server's hostname and port. Server, also has a
+// base server associated. Any Server instance has associated functions to
+// register new routes with its handler bty HTTP method.
 type Server struct {
-	routes []Route
-	debug  bool
-	port   int
+	Hostname string
+	Port     int
+	base     *server
 }
 
-func New() *Server {
-	return &Server{[]Route{}, false, 9999}
-}
-
-//Set port server
-func (s *Server) SetPort(port int) {
-	s.port = port
-}
-
-//Set debug mode
-func (s *Server) DebugMode(mode bool) {
-	s.debug = mode
-}
-
-//GET
-func (s *Server) GET(path string, handler Handler, middlewares ...Handler) {
-	var mid *Handler
-	if len(middlewares) > 0 {
-		mid = &middlewares[0]
+// New function creates a new Server instance with hostname and port provided by
+// the user.
+func New(hostname string, port int, debug bool) (srv *Server, err error) {
+	var base *server
+	if base, err = initServer(hostname, port, debug); err != nil {
+		return
 	}
-	s.addMethod("GET", path, &handler, mid)
+	srv = &Server{hostname, port, base}
+	return
 }
 
-//POST
-func (s *Server) POST(path string, handler Handler, middlewares ...Handler) {
-	var mid *Handler
-	if len(middlewares) > 0 {
-		mid = &middlewares[0]
-	}
-	s.addMethod("POST", path, &handler, mid)
-}
-
-//PUT
-func (s *Server) PUT(path string, handler Handler, middlewares ...Handler) {
-	var mid *Handler
-	if len(middlewares) > 0 {
-		mid = &middlewares[0]
-	}
-	s.addMethod("PUT", path, &handler, mid)
-}
-
-//DELETE
-func (s *Server) DELETE(path string, handler Handler, middlewares ...Handler) {
-	var mid *Handler
-	if len(middlewares) > 0 {
-		mid = &middlewares[0]
-	}
-	s.addMethod("DELETE", path, &handler, mid)
-}
-
-//Create route with path, functions, methods, regexp to compare and middleware if exists
-func (s *Server) addMethod(method, path string, handler *Handler, middleware *Handler) {
-	var position int = -1
-	for i, route := range s.routes {
-		if route.path == path {
-			position = i
-			break
-		}
+// register function receives a HTTP method, route path and associated handlers,
+// one at least. The function creates new route with that parameters (checking
+// handler and middleware) and, if that route not currently exists, add it to
+// the server.
+func (srv *Server) register(method, path string, handlers ...Handler) error {
+	if len(handlers) == 0 {
+		return NewServerErr("not handler provided")
 	}
 
-	var paramRegex *regexp.Regexp = regexp.MustCompile(`:([A-Za-z0-9-_]+)`)
-	var newPath []byte = paramRegex.ReplaceAll([]byte(path), []byte("([A-Za-z0-9-_]+)"))
-	var rgx *regexp.Regexp = regexp.MustCompile(string(newPath))
-
-	if position > -1 {
-		s.routes[position].methods = append(s.routes[position].methods, method)
-		s.routes[position].handlers = append(s.routes[position].handlers, handler)
-		s.routes[position].rgx = rgx
-		s.routes[position].middleware = middleware
-	} else {
-		var methods []string = []string{method}
-		var handlers []*Handler = []*Handler{handler}
-		s.routes = append(s.routes, Route{path, methods, handlers, rgx, middleware})
+	var (
+		e       error
+		r       *route
+		handler = handlers[0]
+	)
+	if r, e = newRoute(method, path, &handler); e != nil {
+		return e
 	}
+
+	if len(handlers) == 2 {
+		r.middleware = &handlers[1]
+	} else if len(handlers) > 2 {
+		NewServerErr("only can add one middleware per route")
+	}
+
+	return srv.base.addRoute(r)
 }
 
-//Listen routes and call, if exists, its function. Set router headers
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for _, route := range s.routes {
-		match, params := ParseParams(route, r.URL.Path)
-		if match {
-			c := NewContext(r.URL.Path, w, r)
-			c.Params = params
-			if s.debug {
-				route.handleRouteDebug(c)
-			} else {
-				route.handleRoute(c)
-			}
-			return
-		}
-	}
-	http.Error(w, "Not found.", 404)
+// Get function add new route on GET HTTP method with path and handlers
+// provided.
+func (srv *Server) Get(path string, handlers ...Handler) error {
+	return srv.register(http.MethodGet, path, handlers...)
 }
 
-//Run on given port
-func (s *Server) Run() {
-	var port string = fmt.Sprintf(":%d", s.port)
-	http.ListenAndServe(port, s)
+// Head function add new route on HEAD HTTP method with path and handlers
+// provided.
+func (srv *Server) Head(path string, handlers ...Handler) error {
+	return srv.register(http.MethodHead, path, handlers...)
+}
+
+// Post function add new route on POST HTTP method with path and handlers
+// provided.
+func (srv *Server) Post(path string, handlers ...Handler) error {
+	return srv.register(http.MethodPost, path, handlers...)
+}
+
+// Put function add new route on PUT HTTP method with path and handlers
+// provided.
+func (srv *Server) Put(path string, handlers ...Handler) error {
+	return srv.register(http.MethodPut, path, handlers...)
+}
+
+// Patch function add new route on PATCH HTTP method with path and handlers
+// provided.
+func (srv *Server) Patch(path string, handlers ...Handler) error {
+	return srv.register(http.MethodPatch, path, handlers...)
+}
+
+// Delete function add new route on DELETE HTTP method with path and handlers
+// provided.
+func (srv *Server) Delete(path string, handlers ...Handler) error {
+	return srv.register(http.MethodDelete, path, handlers...)
+}
+
+// Connect function add new route on CONNECT HTTP method with path and handlers
+// provided.
+func (srv *Server) Connect(path string, handlers ...Handler) error {
+	return srv.register(http.MethodConnect, path, handlers...)
+}
+
+// Options function add new route on OPTIONS HTTP method with path and handlers
+// provided.
+func (srv *Server) Options(path string, handlers ...Handler) error {
+	return srv.register(http.MethodOptions, path, handlers...)
+}
+
+// Trace function add new route on TRACE HTTP method with path and handlers
+// provided.
+func (srv *Server) Trace(path string, handlers ...Handler) error {
+	return srv.register(http.MethodTrace, path, handlers...)
+}
+
+// Listen function starts base server to listen new requests.
+func (srv *Server) Listen() error {
+	return srv.base.start()
 }
