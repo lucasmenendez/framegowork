@@ -42,5 +42,9 @@ func (conf Config) check() (err error) {
 		err = NewServerErr("port number out of bounds (0-65535)")
 	}
 
+	// TODO
+	// - check if HTTP2 is enabled and TLS cert and key setted up
+	// - if TLS cert and key are provided, get file stats
+
 	return
 }
