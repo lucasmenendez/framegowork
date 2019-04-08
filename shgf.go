@@ -7,7 +7,7 @@ import "net/http"
 
 // Server struct contains the server's hostname and port. Server, also has a
 // base server associated. Any Server instance has associated functions to
-// register new routes with its handler bty HTTP method.
+// register new routes with its handler by HTTP method.
 type Server struct {
 	Hostname string
 	Port     int
@@ -15,7 +15,8 @@ type Server struct {
 }
 
 // New function creates a new Server instance with hostname and port provided by
-// the user.
+// the user. If debug mode is enabled, all inbound and outbound request will be
+// logged.
 func New(hostname string, port int, debug bool) (srv *Server, err error) {
 	var base *server
 	if base, err = initServer(hostname, port, debug); err != nil {
