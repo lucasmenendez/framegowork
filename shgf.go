@@ -14,7 +14,7 @@ type Server struct {
 
 // New function creates a new Server instance with config by the user. If debug
 // mode is enabled, all inbound and outbound request will be logged.
-func New(conf Config) (srv *Server, err error) {
+func New(conf *Config) (srv *Server, err error) {
 	if err = conf.check(); err != nil {
 		return
 	}

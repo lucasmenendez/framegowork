@@ -9,18 +9,19 @@ import (
 // server struct contains the current server configuration, attributes and
 // registered routes into the same type.
 type server struct {
-	address string
-	conf    Config
-	routes  routes
+	address, addressTLS string
+	conf                *Config
+	routes              routes
 }
 
 // initServer function creates a new server by hostname and port provided. If
 // debug mode is enabled, server will log errors. To create the new server,
 // checks if the hostname provided and port are valids.
-func initServer(c Config) (s *server, err error) {
+func initServer(c *Config) (s *server, err error) {
 	return &server{
-		address: fmt.Sprintf("%s:%d", c.Hostname, c.Port),
-		conf:    c,
+		address:    fmt.Sprintf("%s:%d", c.Hostname, c.Port),
+		addressTLS: fmt.Sprintf("%s:%d", c.Hostname, c.PortTLS),
+		conf:       c,
 	}, nil
 }
 
@@ -57,6 +58,13 @@ func (s *server) register(method, path string, handlers ...Handler) error {
 	return nil
 }
 
+func (s *server) redirectToHTTPS() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var uri = fmt.Sprintf("%s/%s", s.addressTLS, r.RequestURI)
+		http.Redirect(w, r, uri, http.StatusMovedPermanently)
+	}
+}
+
 // ServerHTTP implements http.Handler interface to stay ready for
 // http.ListAndServe function. The function catch all error into Internal Server
 // Error. If debug is enabled, show traces of HTTP requests, then search into
@@ -89,12 +97,28 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // instance.
 func (s *server) start() error {
 	if s.conf.Debug {
-		log.Printf("Listen on: %s\n", s.address)
+		if s.conf.TLS {
+			log.Printf("Listen on: https://%s\n", s.addressTLS)
+		} else {
+			log.Printf("Listen on: http://%s\n", s.address)
+		}
+	}
+
+	if s.conf.TLS {
+		go func(address string) {
+			http.ListenAndServeTLS(s.addressTLS, s.conf.TLSCert, s.conf.TLSKey, s)
+		}(s.addressTLS)
+
+		if e := http.ListenAndServe(s.address, s.redirectToHTTPS()); e != nil {
+			return NewServerErr("error starting server")
+		}
+		return nil
 	}
 
 	if e := http.ListenAndServe(s.address, s); e != nil {
-		return NewServerErr("error starting server server", e)
+		return NewServerErr("error starting server", e)
 	}
+
 	return nil
 }
 
