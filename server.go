@@ -63,7 +63,6 @@ func (s *server) register(method, path string, handlers ...Handler) error {
 func (s *server) redirectToHTTPS() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var uri = fmt.Sprintf("https://%s/%s", s.AddrTLS, r.RequestURI)
-		fmt.Println(uri)
 		http.Redirect(w, r, uri, http.StatusMovedPermanently)
 	}
 }
