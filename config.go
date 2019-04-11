@@ -11,9 +11,11 @@ const (
 	// maxPort const contains the upper limit of valid port range.
 	maxPort = 65535
 	// localPort const contains default HTTP port number for local services.
-	defaultPort = 8080
+	localPort = 8080
+	// localPortTLS const contains default HTTP port number for local services.
+	localPortTLS = 8081
 	// defaultPort const contains the localhost IP.
-	defaultHostname = "127.0.0.1"
+	localHostname = "127.0.0.1"
 )
 
 // Config struct allows to developers to configure the server easily. Requires
@@ -30,8 +32,9 @@ type Config struct {
 // number is an optional parameter. By default, 8080.
 func LocalConf() *Config {
 	var c = &Config{
-		Hostname: defaultHostname,
-		Port:     defaultPort,
+		Hostname: localHostname,
+		Port:     localPort,
+		PortTLS:  localPortTLS,
 		Debug:    true,
 	}
 
@@ -65,7 +68,7 @@ func (conf *Config) check() (err error) {
 		} else if _, e = os.Stat(conf.TLSKey); err != nil {
 			return NewServerErr("error with TLSKey file path provided", e)
 		} else if minPort >= conf.PortTLS || conf.PortTLS > maxPort {
-			return NewServerErr("port number out of bounds (0-65535)")
+			return NewServerErr("TLS port number out of bounds (0-65535)")
 		} else if conf.PortTLS == conf.Port {
 			return NewServerErr("TLS port and main port must be different")
 		}

@@ -81,7 +81,7 @@ The supported types are:
 Server instance allows to developer to configure the behavior of the server and register new routes to handle it. For more information about `shgf.Server` checkout the documentation [here](https://godoc.org/github.com/lucasmenendez/shgf#Server).
 
 ```go
-s, err := shgf.New("0.0.0.0", 9999, true)
+s, err := shgf.New(shgf.LocalConf())
 if err != nil {
 	fmt.Println(err)
 }
@@ -90,4 +90,24 @@ if err != nil {
 
 s.Listen()
 
+```
+
+#### Server Configuration
+
+Configuration instance allows to set some parameters to define server behavior and properties. For an **advance configuration**, read full docs about `shgf.Config` into the GoDoc [article](https://godoc.org/github.com/lucasmenendez/shgf#Config).
+
+##### Local Host configuration
+
+LocalConf method returns the default configuration to deploy localhost server.
+
+```go
+var conf = shgf.LocalConf()
+```
+
+##### Basic HTTP configuration
+
+BasicConf method receives server hostname and port number, and returns the configuration to deploy a simple HTTP server with that parameters.
+
+```go
+var conf = shgf.BasicConf("0.0.0.0", 8080)
 ```
