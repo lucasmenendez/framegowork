@@ -98,9 +98,18 @@ Configuration instance allows to set some parameters to define server behavior a
 
 ##### Local Host configuration
 
-LocalConf method returns the default configuration to deploy localhost server.
+LocalConf method returns the default configuration to deploy localhost server. It is configured with debug enabled, and serve into `127.0.0.1:8080`.
 
 ```go
+/*
+var conf = &shgf.Config{
+	Hostname: "127.0.0.1",
+	Port: 8080,
+	PortTLS: 8081,
+	Debug: true,
+}
+*/
+
 var conf = shgf.LocalConf()
 ```
 
@@ -109,5 +118,28 @@ var conf = shgf.LocalConf()
 BasicConf method receives server hostname and port number, and returns the configuration to deploy a simple HTTP server with that parameters.
 
 ```go
+/*
+var conf = &shgf.Config{
+	Hostname: "0.0.0.0",
+	Port: 8080,
+}
+*/
+
 var conf = shgf.BasicConf("0.0.0.0", 8080)
+```
+
+##### Enable HTTP2
+
+To enable HTTP2, TLS must be configured.
+
+```go
+var conf = &shfg.Config{
+	Hostname: "127.0.0.1",
+	Port:     8080,
+	PortTLS:  8081,
+	TLSCert:  "/path/to/cert.pem",
+	TLSKey:   "/path/to/key.pem",
+	HTTP2:    true,
+}
+
 ```
