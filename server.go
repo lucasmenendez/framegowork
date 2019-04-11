@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"golang.org/x/net/http2"
 )
 
 // server struct contains the current server configuration, attributes and
 // registered routes into the same type.
 type server struct {
-	address, addressTLS string
-	conf                *Config
-	routes              routes
+	Addr, AddrTLS string
+	conf          *Config
+	routes        routes
 }
 
 // initServer function creates a new server by hostname and port provided. If
@@ -19,9 +21,9 @@ type server struct {
 // checks if the hostname provided and port are valids.
 func initServer(c *Config) (s *server, err error) {
 	return &server{
-		address:    fmt.Sprintf("%s:%d", c.Hostname, c.Port),
-		addressTLS: fmt.Sprintf("%s:%d", c.Hostname, c.PortTLS),
-		conf:       c,
+		Addr:    fmt.Sprintf("%s:%d", c.Hostname, c.Port),
+		AddrTLS: fmt.Sprintf("%s:%d", c.Hostname, c.PortTLS),
+		conf:    c,
 	}, nil
 }
 
@@ -60,7 +62,8 @@ func (s *server) register(method, path string, handlers ...Handler) error {
 
 func (s *server) redirectToHTTPS() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var uri = fmt.Sprintf("%s/%s", s.addressTLS, r.RequestURI)
+		var uri = fmt.Sprintf("https://%s/%s", s.AddrTLS, r.RequestURI)
+		fmt.Println(uri)
 		http.Redirect(w, r, uri, http.StatusMovedPermanently)
 	}
 }
@@ -98,24 +101,29 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *server) start() error {
 	if s.conf.Debug {
 		if s.conf.TLS {
-			log.Printf("Listen on: https://%s\n", s.addressTLS)
+			log.Printf("Listen on: https://%s\n", s.AddrTLS)
 		} else {
-			log.Printf("Listen on: http://%s\n", s.address)
+			log.Printf("Listen on: http://%s\n", s.Addr)
 		}
 	}
 
 	if s.conf.TLS {
-		go func(address string) {
-			http.ListenAndServeTLS(s.addressTLS, s.conf.TLSCert, s.conf.TLSKey, s)
-		}(s.addressTLS)
+		if s.conf.HTTP2 {
+			http2.ConfigureServer(&http.Server{Addr: s.Addr}, nil)
+		}
 
-		if e := http.ListenAndServe(s.address, s.redirectToHTTPS()); e != nil {
+		go func() {
+			http.ListenAndServeTLS(s.AddrTLS, s.conf.TLSCert, s.conf.TLSKey, s)
+		}()
+
+		if e := http.ListenAndServe(s.Addr, s.redirectToHTTPS()); e != nil {
 			return NewServerErr("error starting server")
 		}
+
 		return nil
 	}
 
-	if e := http.ListenAndServe(s.address, s); e != nil {
+	if e := http.ListenAndServe(s.Addr, s); e != nil {
 		return NewServerErr("error starting server", e)
 	}
 
