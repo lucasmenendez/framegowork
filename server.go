@@ -22,7 +22,7 @@ type server struct {
 func initServer(c *Config) (s *server, err error) {
 	return &server{
 		Addr:    fmt.Sprintf("%s:%d", c.Hostname, c.Port),
-		AddrTLS: fmt.Sprintf("%s:%d", c.Hostname, c.PortTLS),
+		AddrTLS: fmt.Sprintf("%s:%d", c.Hostname, c.TLSPort),
 		conf:    c,
 	}, nil
 }

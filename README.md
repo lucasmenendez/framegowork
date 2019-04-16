@@ -130,12 +130,23 @@ var conf = &shgf.Config{
 var conf = shgf.BasicConf("0.0.0.0", 8080)
 ```
 
+##### Enable TLS
+
+To enable TLS, append a TLS port number and a `cert` and `key` files path to the any `shgf.Config`:
+
+```go
+var conf = shgf.BasicConf("0.0.0.0", 8080)
+conf.TLSPort = 8081
+conf.TLSCert = "/path/to/cert.pem"
+conf.TLSKey = "/path/to/key.pem"
+```
+
 ##### Enable HTTP2
 
 To enable HTTP2, TLS must be configured.
 
 ```go
-var conf = &shfg.Config{
+var conf = &shgf.Config{
 	Hostname: "127.0.0.1",
 	Port:     8080,
 	PortTLS:  8081,
@@ -143,5 +154,4 @@ var conf = &shfg.Config{
 	TLSKey:   "/path/to/key.pem",
 	HTTP2:    true,
 }
-
 ```
