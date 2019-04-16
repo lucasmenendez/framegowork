@@ -13,27 +13,6 @@ type checkTest struct {
 	valid bool
 }
 
-func TestLocalConf(t *testing.T) {
-	var tests = []confTest{
-		{"127.0.0.1", 8080, true},
-		{"127.0.0.1", 9090, true},
-		{"127.0.0.1", 0, false},
-		{"127.0.0.1", 100000000, false},
-	}
-
-	for _, test := range tests {
-		if c, err := LocalConf(test.port); test.valid && err != nil {
-			t.Errorf("expected nil, got %s", err)
-		} else if c.Hostname != test.host {
-			t.Errorf("expected %s, got %s", test.host, c.Hostname)
-		} else if c.Port != test.port {
-			t.Errorf("expected %d, got %d", test.port, c.Port)
-		} else if !test.valid && err == nil {
-			t.Error("expected error, got nil")
-		}
-	}
-}
-
 func TestBasicConf(t *testing.T) {
 	var tests = []confTest{
 		{"127.0.0.1", 8080, true},
