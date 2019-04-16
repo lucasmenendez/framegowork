@@ -105,12 +105,11 @@ func newRoute(method, path string, handler *Handler) (r *route, e error) {
 // route params. Validates that the current route has the required data
 // available and parses route params to generate the matcher. If any of this
 // processes raise an error, function return ServerErr.
-func (r *route) parse() (e error) {
+func (r *route) parse() error {
 	if r.path == "" {
-		e = NewServerErr("empty path not allowed")
-		return
-	} else if _, e = url.Parse(r.path); e != nil {
-		return
+		return NewServerErr("empty path not allowed")
+	} else if _, e := url.Parse(r.path); e != nil {
+		return NewServerErr("wrong or bad formatted path provided", e)
 	}
 
 	var (
@@ -135,8 +134,7 @@ func (r *route) parse() (e error) {
 				item = fmt.Sprintf(matcherRgx, t, a, strRgx)
 				break
 			default:
-				e = NewServerErr("unknown data type")
-				return
+				return NewServerErr("unknown data type")
 			}
 		} else {
 			item = i
@@ -147,7 +145,7 @@ func (r *route) parse() (e error) {
 
 	var matcherTemp = strings.Join(items, paramDel)
 	r.matcher = regexp.MustCompile(matcherTemp)
-	return
+	return nil
 }
 
 // handle function calls to the current route handler or middleware, if it is

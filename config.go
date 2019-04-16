@@ -54,22 +54,30 @@ func BasicConf(hostname string, port int) (*Config, error) {
 
 // check function validates that configuration includes the required hostname
 // and port parameters.
-func (conf *Config) check() (err error) {
+func (conf *Config) check() error {
 	if ip := net.ParseIP(conf.Hostname); ip == nil {
-		err = NewServerErr("invalid hostname IP")
-		return
-	} else if minPort >= conf.Port || conf.Port > maxPort {
-		err = NewServerErr("port number out of bounds (0-65535)")
+		return NewServerErr("invalid hostname IP")
+	}
+
+	if minPort >= conf.Port || conf.Port > maxPort {
+		return NewServerErr("port number out of bounds (0-65535)")
 	}
 
 	if conf.TLSCert != "" && conf.TLSKey != "" {
-		if _, e := os.Stat(conf.TLSCert); err != nil {
+		var e error
+		if _, e = os.Stat(conf.TLSCert); e != nil {
 			return NewServerErr("error with TLSCert file path provided", e)
-		} else if _, e = os.Stat(conf.TLSKey); err != nil {
+		}
+
+		if _, e = os.Stat(conf.TLSKey); e != nil {
 			return NewServerErr("error with TLSKey file path provided", e)
-		} else if minPort >= conf.PortTLS || conf.PortTLS > maxPort {
+		}
+
+		if minPort >= conf.PortTLS || conf.PortTLS > maxPort {
 			return NewServerErr("TLS port number out of bounds (0-65535)")
-		} else if conf.PortTLS == conf.Port {
+		}
+
+		if conf.PortTLS == conf.Port {
 			return NewServerErr("TLS port and main port must be different")
 		}
 
@@ -80,5 +88,5 @@ func (conf *Config) check() (err error) {
 		return NewServerErr("HTTP2 requires TLS protocol enabled")
 	}
 
-	return
+	return nil
 }
