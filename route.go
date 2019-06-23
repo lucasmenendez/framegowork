@@ -101,6 +101,23 @@ func newRoute(method, path string, handler *Handler) (r *route, e error) {
 	return
 }
 
+// composeItemRgx function returns a matcher string filling it with the template
+// according to the provicded type. Returns error if the type privided is uknown.
+func composeItemRgx(t, a string) (string, error) {
+	switch t {
+	case "float":
+		return fmt.Sprintf(matcherRgx, t, a, floatRgx), nil
+	case "int":
+		return fmt.Sprintf(matcherRgx, t, a, intRgx), nil
+	case "bool":
+		return fmt.Sprintf(matcherRgx, t, a, boolRgx), nil
+	case "string":
+		return fmt.Sprintf(matcherRgx, t, a, strRgx), nil
+	default:
+		return "", NewServerErr("unknown data type")
+	}
+}
+
 // parse function generates a matcher Regexp for the current route, including
 // route params. Validates that the current route has the required data
 // available and parses route params to generate the matcher. If any of this
@@ -112,37 +129,23 @@ func (r *route) parse() error {
 		return NewServerErr("wrong or bad formatted path provided", e)
 	}
 
-	var (
-		splitter = regexp.MustCompile(paramDel)
-		reader   = regexp.MustCompile(paramTemp)
-		items    []string
-	)
+	var items []string
+	var splitter = regexp.MustCompile(paramDel)
+	var reader = regexp.MustCompile(paramTemp)
 	for _, i := range splitter.Split(r.path, -1) {
-		var res []string
-		if res = reader.FindStringSubmatch(i); len(res) != 3 {
+		var t, a string
+		if res := reader.FindStringSubmatch(i); len(res) != 3 {
 			items = append(items, i)
 			continue
+		} else {
+			t, a = res[1], res[2]
 		}
 
-		var item string
-		switch t, a := res[1], res[2]; t {
-		case "float":
-			item = fmt.Sprintf(matcherRgx, t, a, floatRgx)
-			break
-		case "int":
-			item = fmt.Sprintf(matcherRgx, t, a, intRgx)
-			break
-		case "bool":
-			item = fmt.Sprintf(matcherRgx, t, a, boolRgx)
-			break
-		case "string":
-			item = fmt.Sprintf(matcherRgx, t, a, strRgx)
-			break
-		default:
-			return NewServerErr("unknown data type")
+		if item, err := composeItemRgx(t, a); err != nil {
+			return err
+		} else {
+			items = append(items, item)
 		}
-
-		items = append(items, item)
 	}
 
 	var matcherTemp = strings.Join(items, paramDel)
