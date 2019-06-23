@@ -118,26 +118,28 @@ func (r *route) parse() error {
 		items    []string
 	)
 	for _, i := range splitter.Split(r.path, -1) {
+		var res []string
+		if res = reader.FindStringSubmatch(i); len(res) != 3 {
+			items = append(items, i)
+			continue
+		}
+
 		var item string
-		if res := reader.FindStringSubmatch(i); len(res) == 3 {
-			switch t, a := res[1], res[2]; t {
-			case "float":
-				item = fmt.Sprintf(matcherRgx, t, a, floatRgx)
-				break
-			case "int":
-				item = fmt.Sprintf(matcherRgx, t, a, intRgx)
-				break
-			case "bool":
-				item = fmt.Sprintf(matcherRgx, t, a, boolRgx)
-				break
-			case "string":
-				item = fmt.Sprintf(matcherRgx, t, a, strRgx)
-				break
-			default:
-				return NewServerErr("unknown data type")
-			}
-		} else {
-			item = i
+		switch t, a := res[1], res[2]; t {
+		case "float":
+			item = fmt.Sprintf(matcherRgx, t, a, floatRgx)
+			break
+		case "int":
+			item = fmt.Sprintf(matcherRgx, t, a, intRgx)
+			break
+		case "bool":
+			item = fmt.Sprintf(matcherRgx, t, a, boolRgx)
+			break
+		case "string":
+			item = fmt.Sprintf(matcherRgx, t, a, strRgx)
+			break
+		default:
+			return NewServerErr("unknown data type")
 		}
 
 		items = append(items, item)
