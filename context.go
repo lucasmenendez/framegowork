@@ -6,14 +6,15 @@ import (
 	"strconv"
 )
 
-// Context struct contains current request metainformation and utils like URL
+// Context struct contains the current request metainformation and utils like URL
 // route params values, pointers to following functions or functions to handle
-// with request body.
+// with the request body.
 type Context struct {
 	route   *route
 	next    *Handler
 	Request *http.Request
 	Params  map[string]interface{}
+	Form    *Form
 }
 
 // ParseParams function extract values of URL params defined by current route.
@@ -57,8 +58,23 @@ func (ctx *Context) ParseParams() (err error) {
 	return
 }
 
-// Next function invokes the main handler from middleware. If next function is
-// invoked outside of middleware function, internal server error is returned.
+// ParseForm function invokes form function to parse the current request body to
+// Form struct and append it into the current context. If an error occurs, it is
+// returned.
+func (ctx *Context) ParseForm() (err error) {
+	switch ctx.Request.Method {
+	case http.MethodPost, http.MethodPut, http.MethodTrace, http.MethodPatch:
+		ctx.Form, err = parseForm(ctx.Request)
+		break
+	default:
+		err = NewServerErr("Current request method not allows to parse forms")
+	}
+
+	return err
+}
+
+// Next function invokes the main handler from middleware. If the Next function
+// is invoked outside of middleware function, internal server error is returned.
 func (ctx *Context) Next() *Response {
 	if ctx.next == nil {
 		var err = "next function not defined"
