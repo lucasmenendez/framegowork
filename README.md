@@ -12,7 +12,7 @@
 
 * Handle URL by path and method
 * Register dynamic paths with typed params
-* Parse forms easely
+* Parse forms easily
 * TLS & HTTP/2 
 
 ## Reference
