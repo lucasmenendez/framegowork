@@ -1,68 +1,14 @@
 package shgf
 
 import (
-	"net/http"
-	"net/url"
 	"reflect"
-	"regexp"
 	"testing"
 )
-
-type testParseParams struct {
-	ctx          *Context
-	failedCtx    bool
-	params       map[string]interface{}
-	failedParams bool
-}
 
 type testNext struct {
 	ctx    *Context
 	failed bool
 	res    *Response
-}
-
-func TestContext_parseParams(t *testing.T) {
-	var errTests = []testParseParams{
-		{
-			ctx: &Context{
-				route:   &route{matcher: regexp.MustCompile(`\/request\/(?P<int_id>[0-9]+)\/(e)dit`)},
-				Request: &http.Request{URL: &url.URL{Path: "/request/12/edit"}},
-			},
-			failedCtx:    true,
-			params:       map[string]interface{}{"id": 12},
-			failedParams: false,
-		},
-		{
-			ctx: &Context{
-				route:   &route{matcher: regexp.MustCompile(`\/request\/(?P<int_id>[0-9]+)\/edit`)},
-				Request: &http.Request{URL: &url.URL{Path: "/request/12/edit"}},
-			},
-			failedCtx:    false,
-			params:       map[string]interface{}{"id": "12"},
-			failedParams: true,
-		},
-		{
-			ctx: &Context{
-				route:   &route{matcher: regexp.MustCompile(`\/request\/(?P<int_id>[0-9]+)\/edit`)},
-				Request: &http.Request{URL: &url.URL{Path: "/request/12/edit"}},
-			},
-			failedCtx:    false,
-			params:       map[string]interface{}{"id": 12},
-			failedParams: false,
-		},
-	}
-
-	for _, test := range errTests {
-		if err := test.ctx.ParseParams(); test.failedCtx && err == nil {
-			t.Errorf("error expected, got nil")
-		} else if !test.failedCtx && err != nil {
-			t.Errorf("unexpected error: %s", err.Error())
-		} else if equal := reflect.DeepEqual(test.params, test.ctx.Params); test.failedParams && equal {
-			t.Errorf("expected distinct to %+v, got %+v", test.params, test.ctx.Params)
-		} else if !test.failedParams && !equal {
-			t.Errorf("expected %+v, got %+v", test.params, test.ctx.Params)
-		}
-	}
 }
 
 func TestContextNext(t *testing.T) {

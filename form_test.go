@@ -14,14 +14,11 @@ import (
 type testRequest struct {
 	valid    bool
 	req      *http.Request
-	expected *Form
+	expected Form
 }
 
 func Test_parseForm(t *testing.T) {
-	var form = &Form{
-		keys:   []string{"foo"},
-		fields: map[string]interface{}{"foo": []string{"bar"}},
-	}
+	var form = Form{"foo": []string{"bar"}}
 
 	var params = url.Values{}
 	params.Set("foo", "bar")
@@ -69,10 +66,7 @@ func Test_parseForm(t *testing.T) {
 }
 
 func TestFormExists(t *testing.T) {
-	var form = &Form{
-		keys:   []string{"foo"},
-		fields: map[string]interface{}{"foo": []string{"bar"}},
-	}
+	var form = Form{"foo": []string{"bar"}}
 
 	if exists := form.Exists("foo"); !exists {
 		t.Error("expected true, got false")
@@ -88,10 +82,7 @@ func TestFormExists(t *testing.T) {
 }
 
 func TestFormGet(t *testing.T) {
-	var form = &Form{
-		keys:   []string{"foo"},
-		fields: map[string]interface{}{"foo": []string{"bar"}},
-	}
+	var form = &Form{"foo": []string{"bar"}}
 
 	if res, err := form.Get("foo"); err != nil {
 		t.Errorf("expected nil, got %s", err)
@@ -101,25 +92,5 @@ func TestFormGet(t *testing.T) {
 
 	if _, err := form.Get("invalid"); err == nil {
 		t.Error("expected error, got nil")
-	}
-}
-
-func TestFormGetAll(t *testing.T) {
-	var form = &Form{
-		keys:   []string{"foo"},
-		fields: map[string]interface{}{"foo": []string{"bar"}},
-	}
-
-	if res := form.GetAll(); !reflect.DeepEqual(res, map[string]interface{}{"foo": []string{"bar"}}) {
-		t.Errorf("expected %+v, got %+v", map[string]interface{}{"foo": []string{"bar"}}, res)
-	}
-
-	form = &Form{
-		keys:   []string{},
-		fields: map[string]interface{}{},
-	}
-
-	if res := form.GetAll(); !reflect.DeepEqual(res, map[string]interface{}{}) {
-		t.Errorf("expected %+v, got %+v", map[string]interface{}{}, res)
 	}
 }

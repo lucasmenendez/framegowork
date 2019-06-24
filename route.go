@@ -1,38 +1,9 @@
 package shgf
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
-	"strings"
-)
-
-const (
-	// pathRgx matches with any string between slashes. Used for validation.
-	pathRgx = `(\/.*)+`
-	// paramDel matches with slashes. Used for split and join paths.
-	paramDel = `\/`
-	// paramTemp matches with param format. Used for extract params from the
-	// path.
-	paramTemp = `<(int|string|float|bool):(.*)>`
-	// matcherRgx its a template to generate the matcher to handling routes.
-	matcherRgx = `(?P<%s_%s>%s)`
-	// paramRgx mathes with the route handled param extracting param type and
-	// content at once.
-	paramRgx = `(int|string|float|bool)_(.+)`
-	// floatRgx matches with float number into a string. Used to generate
-	// the matcher to handling routes with float params.
-	floatRgx = `[0-9]+\.[0-9]+`
-	// intRgx matches with int number into a string. Used to generate
-	// the matcher to handling routes with int params.
-	intRgx = `[0-9]+`
-	// boolRgx matches with bool number into a string. Used to generate
-	// the matcher to handling routes with bool params.
-	boolRgx = `true|false`
-	// stringRgx matches with string number into a string. Used to generate
-	// the matcher to handling routes with string params.
-	strRgx = `.+`
 )
 
 // validMethods contains all HTTP Methods into a string slice.
@@ -101,23 +72,6 @@ func newRoute(method, path string, handler *Handler) (r *route, e error) {
 	return
 }
 
-// composeItemRgx function returns a matcher string filling it with the template
-// according to the provicded type. Returns error if the type privided is uknown.
-func composeItemRgx(t, a string) (string, error) {
-	switch t {
-	case "float":
-		return fmt.Sprintf(matcherRgx, t, a, floatRgx), nil
-	case "int":
-		return fmt.Sprintf(matcherRgx, t, a, intRgx), nil
-	case "bool":
-		return fmt.Sprintf(matcherRgx, t, a, boolRgx), nil
-	case "string":
-		return fmt.Sprintf(matcherRgx, t, a, strRgx), nil
-	default:
-		return "", NewServerErr("unknown data type")
-	}
-}
-
 // parse function generates a matcher Regexp for the current route, including
 // route params. Validates that the current route has the required data
 // available and parses route params to generate the matcher. If any of this
@@ -129,28 +83,9 @@ func (r *route) parse() error {
 		return NewServerErr("wrong or bad formatted path provided", e)
 	}
 
-	var items []string
-	var splitter = regexp.MustCompile(paramDel)
-	var reader = regexp.MustCompile(paramTemp)
-	for _, i := range splitter.Split(r.path, -1) {
-		var t, a string
-		if res := reader.FindStringSubmatch(i); len(res) != 3 {
-			items = append(items, i)
-			continue
-		} else {
-			t, a = res[1], res[2]
-		}
-
-		if item, err := composeItemRgx(t, a); err != nil {
-			return err
-		} else {
-			items = append(items, item)
-		}
-	}
-
-	var matcherTemp = strings.Join(items, paramDel)
-	r.matcher = regexp.MustCompile(matcherTemp)
-	return nil
+	var err error
+	r.matcher, err = encodeParams(r.path)
+	return err
 }
 
 // handle function calls to the current route handler or middleware, if it is
