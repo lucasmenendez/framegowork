@@ -7,16 +7,45 @@
 # SHGF: Simple HTTP golang framework
 **S**imple **H**TTP **G**olang **F**ramework. Provides simple API to create an HTTP server and routes with dynamic paths, registered by HTTP method.
 
-## Install
+
+## Main features
+
+* Handle URL by path and method
+* Register dynamic paths with typed params
+* Parse forms easely
+* TLS & HTTP/2 
+
+## Reference
+Read all the reference documents into [GoDoc](https://godoc.org/github.com/lucasmenendez/shgf) article.
+
+## Installation
 
 ```sh
 go get github.com/lucasmenendez/shgf	
 ```
 
-## Documentation
-Read all the reference documents into [GoDoc](https://godoc.org/github.com/lucasmenendez/shgf) article.
+---
 
-### Import the package
+## Documentation
+
+1. [Including `shgf` on your project](#including-shgf-on-your-project)
+2. [Initializing `shgf.Server`](#initializing-shgf.Server)
+   - Server configuration
+      - Local Host configuration
+	  - Basic HTTP configuration
+	  - Enable TLS
+	  - Enable HTTP/2
+3. [Routes](#routes)
+   - Registring new routes
+   - Routes params
+   - Parsing route params
+4. [Handlers](#handlers)
+   - Main Handler
+   - Middleware Handler
+5. [Forms](#forms)
+   - Parsing forms
+
+### Including `shgf` on your project
 
 You can import it like this:
 
@@ -24,7 +53,7 @@ You can import it like this:
 import "github.com/lucasmenendez/shgf"
 ```
 
-### Server
+### Initializing `shgf.Server`
 
 Server instance allows to developer to configure the behavior of the server and register new routes to handle it. For more information about `shgf.Server` checkout the documentation [here](https://godoc.org/github.com/lucasmenendez/shgf#Server).
 
@@ -86,7 +115,7 @@ conf.TLSCert = "/path/to/cert.pem"
 conf.TLSKey = "/path/to/key.pem"
 ```
 
-##### Enable HTTP2
+##### Enable HTTP/2
 
 To enable HTTP2, TLS must be configured.
 
@@ -105,13 +134,19 @@ var conf = &shgf.Config{
 
 Registering new route, the server is prepared to listen to requests on the route's path and handling it calling the route's handler. The route is registered calling to the different functions named like the HTTP verbs.
 
+#### Registring new routes 
+
+New routes must be assigned to an existing server. Register new routes calling desired server method according to the chosen HTTP method, passing the desired path to listen and one [handler](#handlers) at least. Check out more information about this [here](https://godoc.org/github.com/lucasmenendez/shgf#Server);
+
+```go
+server.GET("/hello/<string:msg>", req, mid)
+server.POST("/hello/<string:msg>", req, mid)
+```
+
 #### Routes params
 
 Route registration admits dynamic paths to define typed params inside. The params must have the following format: `<type:alias>`. After parsing params, its possible to access them using `context.Params` (check how to parse params in the [following section](#parsing-route-params)). `context.Params` its a `map[string]interface{}` with functions like `Exists()` or `Get()` that provides secure API. 
 
-```go
-server.GET("/hello/<string:msg>", req, mid)
-```
 
 The supported types are:
 
@@ -123,7 +158,7 @@ The supported types are:
 |  `string`  | `<string:foo>` |
 
 
-##### Parsing route params
+#### Parsing route params
 
 To use the route params into a handler function, it must first be parsed calling `context.ParseParams()`. Then, all the params will be accessible from `context.Params` (a map of `string` and `interface{}`):
 
