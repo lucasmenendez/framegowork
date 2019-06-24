@@ -12,11 +12,6 @@ type testNewRoute struct {
 	expected     *route
 }
 
-type testParseRoute struct {
-	path, rgx string
-	valid     bool
-}
-
 type testHandleRoute struct {
 	handler, middleware *Handler
 	valid               bool
@@ -59,25 +54,6 @@ func TestNewRoute(t *testing.T) {
 			}
 		} else if test.valid {
 			t.Errorf("expected nil, got %+v", e)
-		}
-	}
-}
-
-func TestRoute_parse(t *testing.T) {
-	var tests = []testParseRoute{
-		{"/item/child/12", `\/item\/child\/12`, true},
-		{"/item/child/<int:id>", `\/item\/child\/(?P<int_id>[0-9]+)`, true},
-		{"/item/child/<badformat>", ``, false},
-		{"/item/child/<wrongtype:name>", ``, false},
-	}
-
-	var r = &route{}
-	for _, test := range tests {
-		r.path = test.path
-		if e := r.parse(); test.valid && e != nil {
-			t.Errorf("expected valid route, got error %s on path %s", e, r.path)
-		} else if test.valid && test.rgx != r.matcher.String() {
-			t.Errorf("expected %s matcher, got %s", test.rgx, r.matcher.String())
 		}
 	}
 }

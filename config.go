@@ -12,8 +12,8 @@ const (
 	maxPort = 65535
 	// localPort const contains default HTTP port number for local services.
 	localPort = 8080
-	// localPortTLS const contains default HTTP port number for local services.
-	localPortTLS = 8081
+	// localTLSPort const contains default HTTP port number for local services.
+	localTLSPort = 8081
 	// defaultPort const contains the localhost IP.
 	localHostname = "127.0.0.1"
 )
@@ -23,7 +23,7 @@ const (
 // HTTP2 flags to enable it.
 type Config struct {
 	Hostname          string
-	Port, PortTLS     int
+	Port, TLSPort     int
 	Debug, HTTP2, TLS bool
 	TLSCert, TLSKey   string
 }
@@ -34,7 +34,7 @@ func LocalConf() *Config {
 	var c = &Config{
 		Hostname: localHostname,
 		Port:     localPort,
-		PortTLS:  localPortTLS,
+		TLSPort:  localTLSPort,
 		Debug:    true,
 	}
 
@@ -63,29 +63,30 @@ func (conf *Config) check() error {
 		return NewServerErr("port number out of bounds (0-65535)")
 	}
 
+	return conf.validTLS()
+}
+
+// validTLS function validates that configuration includes the required TLS
+// parameters.
+func (conf *Config) validTLS() error {
 	if conf.TLSCert != "" && conf.TLSKey != "" {
-		var e error
-		if _, e = os.Stat(conf.TLSCert); e != nil {
-			return NewServerErr("error with TLSCert file path provided", e)
-		}
-
-		if _, e = os.Stat(conf.TLSKey); e != nil {
-			return NewServerErr("error with TLSKey file path provided", e)
-		}
-
-		if minPort >= conf.PortTLS || conf.PortTLS > maxPort {
+		if minPort >= conf.TLSPort || conf.TLSPort > maxPort {
 			return NewServerErr("TLS port number out of bounds (0-65535)")
-		}
-
-		if conf.PortTLS == conf.Port {
+		} else if conf.TLS && conf.TLSPort == conf.Port {
 			return NewServerErr("TLS port and main port must be different")
 		}
 
-		conf.TLS = true
-	}
+		if _, e := os.Stat(conf.TLSCert); e != nil {
+			return NewServerErr("error with TLSCert file path provided", e)
+		}
 
-	if conf.HTTP2 && !conf.TLS {
-		return NewServerErr("HTTP2 requires TLS protocol enabled")
+		if _, e := os.Stat(conf.TLSKey); e != nil {
+			return NewServerErr("error with TLSKey file path provided", e)
+		}
+
+		conf.TLS = true
+	} else if conf.HTTP2 {
+		return NewServerErr("HTTP2 requires TLS configuration")
 	}
 
 	return nil
