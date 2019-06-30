@@ -189,12 +189,7 @@ func (r *Response) submit(w http.ResponseWriter, debug bool) (e error) {
 
 	w.WriteHeader(r.Status)
 	if _, e = w.Write(r.Body); e == nil && debug {
-		var trace = r.Body
-		if len(trace) > 256 {
-			trace = r.Body[:255]
-		}
-
-		log.Printf("-> [%d] %s", r.Status, string(trace))
+		log.Printf("-> [%d] %s", r.Status, HTTPStatus[r.Status])
 	}
 	return
 }
