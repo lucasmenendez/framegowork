@@ -3,7 +3,9 @@
 // register new available routes with its handler by HTTP method.
 package shgf
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // Server struct contains the server's hostname and port. Server, also has a
 // base server associated. Any Server instance has associated functions to
