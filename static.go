@@ -73,9 +73,9 @@ func (r *StaticFolder) Serve(file string) *Response {
 
 	var res = &Response{Status: 200}
 	if header := mime.TypeByExtension(filepath.Ext(filename)); header == "" {
-		res.Header = map[string][]string{"Content-type": []string{defaultHeader}}
+		res.Header = map[string][]string{"Content-type": {defaultHeader}}
 	} else {
-		res.Header = map[string][]string{"Content-type": []string{header}}
+		res.Header = map[string][]string{"Content-type": {header}}
 	}
 
 	if res.Body, err = ioutil.ReadFile(filename); err != nil {

@@ -65,8 +65,8 @@ func TestStaticFolderServe(t *testing.T) {
 	}
 
 	var tests = []serveTests{
-		{"test.json", []byte(`{"foo": { "bar": 1 }}`), &Response{200, map[string][]string{"Content-type": []string{"text/plain"}}, []byte(`{"foo": { "bar": 1 }}`)}, true},
-		{"test.json", []byte(`{"foo": { "bar": 1 }}`), &Response{200, map[string][]string{"Content-type": []string{"application/json"}}, []byte(`{"foo": { "bar": 1 }}`)}, false},
+		{"test.json", []byte(`{"foo": { "bar": 1 }}`), &Response{200, map[string][]string{"Content-type": {"text/plain"}}, []byte(`{"foo": { "bar": 1 }}`)}, true},
+		{"test.json", []byte(`{"foo": { "bar": 1 }}`), &Response{200, map[string][]string{"Content-type": {"application/json"}}, []byte(`{"foo": { "bar": 1 }}`)}, false},
 	}
 
 	for _, test := range tests {

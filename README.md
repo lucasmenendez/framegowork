@@ -14,6 +14,7 @@
 * Register dynamic paths with typed params
 * Parse forms easily
 * TLS & HTTP/2 
+* Static files and folders
 
 ## Reference
 Read all the reference documents into [GoDoc](https://godoc.org/github.com/lucasmenendez/shgf) article.
