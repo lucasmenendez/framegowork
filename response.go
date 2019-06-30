@@ -145,6 +145,14 @@ func BadRequest(err ...interface{}) (r *Response) {
 	return
 }
 
+// Forbidden function creates a error Response with "Forbidden" HTTP status
+// code and sets as Body the default status message with a parsed a set of err
+// interface{} as ServerErr.
+func Forbidden(err ...interface{}) (r *Response) {
+	r, _ = NewResponse(403, NewServerErr(string(HTTPStatus[403]), err...))
+	return
+}
+
 // NotFound function creates a error Response with "Not Found" HTTP status
 // code and sets as Body the default status message with a parsed a set of err
 // interface{} as ServerErr.
@@ -181,7 +189,7 @@ func (r *Response) submit(w http.ResponseWriter, debug bool) (e error) {
 
 	w.WriteHeader(r.Status)
 	if _, e = w.Write(r.Body); e == nil && debug {
-		log.Printf("-> [%d] %s", r.Status, string(r.Body))
+		log.Printf("-> [%d] %s", r.Status, HTTPStatus[r.Status])
 	}
 	return
 }
