@@ -39,10 +39,11 @@ func TestStaticFolder_composePath(t *testing.T) {
 		fail  bool
 	}
 
+	currentPath, _ := os.Getwd()
 	route, _ := NewStaticFolder("./")
 	var tests = []testComposePath{
-		{route, "./", "/Users/lucasmenendez/Workspace/golang/src/github.com/lucasmenendez/shgf/index.html", true},
-		{route, "config.go", "/Users/lucasmenendez/Workspace/golang/src/github.com/lucasmenendez/shgf/config.go", false},
+		{route, "./", filepath.Join(currentPath, "index.html"), true},
+		{route, "config.go", filepath.Join(currentPath, "config.go"), false},
 		{route, "foo", "", true},
 	}
 
