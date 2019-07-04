@@ -15,9 +15,10 @@ func TestNewStaticFolder(t *testing.T) {
 		fail bool
 	}
 
-	var currentPath = "/Users/lucasmenendez/Workspace/golang/src/github.com/lucasmenendez/shgf"
+	currentPath, _ := os.Getwd()
 	var tests = []testStatic{
 		{"./", &StaticFolder{root: currentPath}, false},
+		{currentPath, &StaticFolder{root: currentPath}, false},
 		{"./foo", &StaticFolder{}, true},
 	}
 
